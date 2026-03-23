@@ -7,7 +7,6 @@ import org.jetbrains.exposed.v1.javatime.timestamp
 object DiscordAccounts : IntIdTable("discord_accounts") {
     val discordUserId = ulong("discord_user_id").uniqueIndex()
     val lastKnownUsername = varchar("last_known_username", length = 32)
-    val lastKnownGlobalName = varchar("last_known_global_name", length = 32).nullable()
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
 }

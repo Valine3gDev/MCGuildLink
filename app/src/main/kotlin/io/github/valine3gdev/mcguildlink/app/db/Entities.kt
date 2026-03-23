@@ -10,7 +10,6 @@ class DiscordAccountEntity(id: EntityID<Int>) : IntEntity(id) {
 
     var discordUserId by DiscordAccounts.discordUserId
     var lastKnownUsername by DiscordAccounts.lastKnownUsername
-    var lastKnownGlobalName by DiscordAccounts.lastKnownGlobalName
     var createdAt by DiscordAccounts.createdAt
     var updatedAt by DiscordAccounts.updatedAt
 
