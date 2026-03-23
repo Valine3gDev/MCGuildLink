@@ -2,6 +2,7 @@ package io.github.valine3gdev.mcguildlink.app.minecraft
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.valine3gdev.mcguildlink.app.config.MinecraftServerConfig
+import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.CompoundBinaryTag
 import net.kyori.adventure.text.Component
@@ -17,13 +18,15 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.toJavaDuration
+import kotlin.uuid.toKotlinUuid
 
 
 private val logger = KotlinLogging.logger {}
 
 
 class MinecraftServer(
-    private val config: MinecraftServerConfig
+    private val config: MinecraftServerConfig,
+    private val accountLinkService: AccountLinkService,
 ) {
     companion object {
         private val CODE_SUBMIT_KEY = Key.key("mcguildlink:submit_code")
@@ -37,7 +40,9 @@ class MinecraftServer(
         val pendingConfigurationDisconnects = ConcurrentHashMap<UUID, CompletableFuture<Unit>>()
 
         val globalEventHandler = MinecraftServer.getGlobalEventHandler()
-        globalEventHandler.addListener(PlayerConfigCustomClickEvent::class.java, ::handlePlayerConfigCustomClickEvent)
+        globalEventHandler.addListener(PlayerConfigCustomClickEvent::class.java) {
+            handlePlayerConfigCustomClickEvent(it)
+        }
         globalEventHandler.addListener(AsyncPlayerConfigurationEvent::class.java) {
             handleAsyncPlayerConfigurationEvent(pendingConfigurationDisconnects, it)
         }
@@ -53,6 +58,7 @@ class MinecraftServer(
         event: AsyncPlayerConfigurationEvent
     ) {
         val player = event.player
+        val uuid = player.uuid
 
         val disconnectFuture = CompletableFuture<Unit>()
         pendingConfigurationDisconnects[player.uuid] = disconnectFuture
@@ -61,7 +67,7 @@ class MinecraftServer(
                 if (disconnectFuture.isDone || !player.isOnline) {
                     return@buildTask
                 }
-                logger.warn { "Player ${player.username} (${player.uuid}) timed out during authentication. Disconnecting." }
+                logger.warn { "Player ${player.username} ($uuid) timed out during authentication. Disconnecting." }
                 player.kick(
                     """
                     コードを入力する時間が長過ぎたため、切断されました。
@@ -79,46 +85,50 @@ class MinecraftServer(
             disconnectFuture.join()
         } finally {
             timeoutTask.cancel()
-            pendingConfigurationDisconnects.remove(player.uuid, disconnectFuture)
+            pendingConfigurationDisconnects.remove(uuid, disconnectFuture)
         }
     }
 
     private fun handlePlayerConfigCustomClickEvent(event: PlayerConfigCustomClickEvent) {
+        val player = event.player
+        val username = player.username
+        val uuid = player.uuid
+
         when (event.key) {
             DIALOG_SUCCESS_KEY -> {
-                logger.info { "Player ${event.player.username} (${event.player.uuid}) completed authentication successfully. Disconnecting." }
-                event.player.kick("正常に切断されました。")
+                logger.info { "Player $username ($uuid) completed authentication successfully. Disconnecting." }
+                player.kick("正常に切断されました。")
             }
 
             CODE_SUBMIT_KEY -> {
                 val payload = event.payload as? CompoundBinaryTag ?: run {
                     showCodeDialog(
-                        event.player,
+                        player,
                         errorMessage = "コードを受け取れませんでした。もう一度入力してください。"
                     )
-                    logger.error { "Player ${event.player.username} (${event.player.uuid}) submitted invalid payload for code submission." }
+                    logger.error { "Player $username ($uuid) submitted invalid payload for code submission." }
                     return
                 }
 
                 val code = payload.getString(CODE_INPUT_NBT_KEY).trim()
                 if (code.isEmpty()) {
                     showCodeDialog(
-                        event.player,
+                        player,
                         errorMessage = "コードが空です。もう一度入力してください。"
                     )
                     return
                 }
 
-                if (!confirmCode(code)) {
+                val discord = accountLinkService.consumeCodeAndLink(code, uuid.toKotlinUuid(), username) ?: run {
                     showCodeDialog(
-                        event.player,
+                        player,
                         initialCode = code,
                         errorMessage = "コードを確認できませんでした。もう一度入力してください。"
                     )
                     return
                 }
 
-                showSuccessDialog(event.player, code)
+                showSuccessDialog(player, discord.lastKnownUsername)
             }
 
             else -> return
@@ -186,19 +196,14 @@ class MinecraftServer(
         )
     }
 
-    private fun showSuccessDialog(player: Player, code: String) {
+    private fun showSuccessDialog(player: Player, discordUsername: String) {
         player.showDialog(
             buildDialog(
                 "成功しました。",
                 "切断",
                 DIALOG_SUCCESS_KEY,
-                listOf("$code (後々 Discordアカウント名に変える) との紐付けが完了しました。")
+                listOf("$discordUsername との紐付けが完了しました。")
             )
         )
-    }
-
-    private fun confirmCode(code: String): Boolean {
-        // TODO: Replace this with the actual Discord-side confirmation.
-        return code.length == 8
     }
 }

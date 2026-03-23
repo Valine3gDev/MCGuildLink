@@ -10,6 +10,7 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.time.Instant
 import kotlin.uuid.Uuid
 
@@ -47,10 +48,10 @@ class AccountLinkService(
         LinkRequestResult(request.code)
     }
 
-    suspend fun consumeCodeAndLink(code: String, uuid: Uuid, name: String) = suspendTransaction(db) {
+    fun consumeCodeAndLink(code: String, uuid: Uuid, name: String) = transaction(db) {
         val request = LinkRequestEntity.find {
             LinkRequests.code eq code
-        }.firstOrNull() ?: error("Invalid link code")
+        }.firstOrNull() ?: return@transaction null
 
         val discord = request.discordAccount
 
@@ -80,13 +81,13 @@ class AccountLinkService(
         }
     }
 
-    suspend fun listLinkedDiscordAccounts(uuid: Uuid): List<DiscordAccountInfo> = suspendTransaction(db) {
-        val minecraft = getMinecraftAccountOrNull(uuid) ?: return@suspendTransaction emptyList()
-
-        minecraft.links.map { link ->
-            val discord = link.discordAccount
-            DiscordAccountInfo(discord.userId, discord.lastKnownUsername)
-        }
+    suspend fun getLinkOrNull(discordUserId: ULong, minecraftUuid: Uuid) = suspendTransaction(db) {
+        val discord = getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction null
+        val minecraft = getMinecraftAccountOrNull(minecraftUuid) ?: return@suspendTransaction null
+        Pair(
+            DiscordAccountInfo(discord.userId, discord.lastKnownUsername),
+            MinecraftAccountInfo(minecraft.uuid, minecraft.lastKnownName)
+        )
     }
 
     suspend fun unlink(discordUserId: ULong, minecraftUuid: Uuid) = suspendTransaction(db) {
