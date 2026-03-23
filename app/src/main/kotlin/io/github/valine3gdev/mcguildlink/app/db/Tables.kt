@@ -5,18 +5,14 @@ import org.jetbrains.exposed.v1.javatime.timestamp
 
 
 object DiscordAccounts : IntIdTable("discord_accounts") {
-    val discordUserId = ulong("discord_user_id").uniqueIndex()
+    val userId = ulong("user_id").uniqueIndex()
     val lastKnownUsername = varchar("last_known_username", length = 32)
-    val createdAt = timestamp("created_at")
-    val updatedAt = timestamp("updated_at")
 }
 
 
 object MinecraftAccounts : IntIdTable("minecraft_accounts") {
     val uuid = uuid("uuid").uniqueIndex()
     val lastKnownName = varchar("last_known_name", length = 16)
-    val createdAt = timestamp("created_at")
-    val updatedAt = timestamp("updated_at")
 }
 
 
@@ -34,6 +30,4 @@ object AccountLinks : IntIdTable("account_links") {
 object LinkRequests : IntIdTable("link_requests") {
     val discordAccount = reference("discord_account_id", DiscordAccounts).uniqueIndex()
     val code = varchar("code", length = 64).uniqueIndex()
-    val createdAt = timestamp("created_at")
-    val updatedAt = timestamp("updated_at")
 }
