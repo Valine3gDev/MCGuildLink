@@ -1,0 +1,7 @@
+[bot]
+token = "YOUR_BOT_TOKEN_HERE"
+guild = 0 # Replace with your guild ID
+
+[server]
+address = "0.0.0.0"
+port = 25565
