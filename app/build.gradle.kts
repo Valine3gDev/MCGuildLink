@@ -19,15 +19,28 @@ kotlin {
         @Suppress("UnstableApiUsage")
         vendor = JvmVendorSpec.JETBRAINS
     }
+    compilerOptions {
+        optIn.addAll("kotlin.uuid.ExperimentalUuidApi")
+    }
 }
 
 application {
     mainClass = "io.github.valine3gdev.mcguildlink.app.AppKt"
+    applicationDefaultJvmArgs = listOf(
+        "-Dfile.encoding=UTF-8",
+        "-Dstdout.encoding=UTF-8",
+        "-Dstderr.encoding=UTF-8"
+    )
 }
 
 tasks {
     named<JavaExec>("run") {
-        jvmArgs = listOf("-XX:+AllowEnhancedClassRedefinition")
+        jvmArgs(
+            "-XX:+AllowEnhancedClassRedefinition",
+            "-Dfile.encoding=UTF-8",
+            "-Dstdout.encoding=UTF-8",
+            "-Dstderr.encoding=UTF-8"
+        )
     }
     withType<Test>().configureEach {
         useJUnitPlatform()

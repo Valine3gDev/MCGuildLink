@@ -2,6 +2,7 @@ package io.github.valine3gdev.mcguildlink.app.config
 
 import dev.eav.tomlkt.Toml
 import dev.kord.common.entity.Snowflake
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import java.nio.file.Path
@@ -12,7 +13,9 @@ import kotlin.time.Duration
 @Serializable
 data class Config(
     val bot: BotConfig,
-    val server: ServerConfig,
+
+    @SerialName("minecraft_server")
+    val minecraftServer: MinecraftServerConfig,
 ) {
     companion object {
         fun load(path: Path) = Toml.decodeFromString<Config>(path.readText())
@@ -29,7 +32,7 @@ data class BotConfig(
 
 
 @Serializable
-data class ServerConfig(
+data class MinecraftServerConfig(
     val address: String,
     val port: Int,
     val timeout: Duration,

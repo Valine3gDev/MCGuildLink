@@ -3,7 +3,7 @@ package io.github.valine3gdev.mcguildlink.app
 import io.github.valine3gdev.mcguildlink.app.config.Config
 import io.github.valine3gdev.mcguildlink.app.db.DatabaseFactory
 import io.github.valine3gdev.mcguildlink.app.discord.Bot
-import io.github.valine3gdev.mcguildlink.app.minecraft.Server
+import io.github.valine3gdev.mcguildlink.app.minecraft.MinecraftServer
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
@@ -19,12 +19,12 @@ class App(
         config = config.bot,
     )
 
-    val server = Server(
-        config = config.server,
+    val minecraftServer = MinecraftServer(
+        config = config.minecraftServer,
     )
 
     suspend fun start() = coroutineScope {
-        server.start()
+        minecraftServer.start()
 
         launch { bot.start() }
     }

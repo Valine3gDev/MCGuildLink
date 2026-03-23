@@ -1,0 +1,40 @@
+package io.github.valine3gdev.mcguildlink.app.db
+
+import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
+import org.jetbrains.exposed.v1.javatime.timestamp
+
+
+object DiscordAccounts : IntIdTable("discord_accounts") {
+    val discordUserId = ulong("discord_user_id").uniqueIndex()
+    val lastKnownUsername = varchar("last_known_username", length = 32)
+    val lastKnownGlobalName = varchar("last_known_global_name", length = 32).nullable()
+    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at")
+}
+
+
+object MinecraftAccounts : IntIdTable("minecraft_accounts") {
+    val uuid = uuid("uuid").uniqueIndex()
+    val lastKnownName = varchar("last_known_name", length = 16)
+    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at")
+}
+
+
+object AccountLinks : IntIdTable("account_links") {
+    val discordAccount = reference("discord_account_id", DiscordAccounts)
+    val minecraftAccount = reference("minecraft_account_id", MinecraftAccounts)
+    val linkedAt = timestamp("linked_at")
+
+    init {
+        uniqueIndex(discordAccount, minecraftAccount)
+    }
+}
+
+
+object LinkRequests : IntIdTable("link_requests") {
+    val discordAccount = reference("discord_account_id", DiscordAccounts).uniqueIndex()
+    val code = varchar("code", length = 64).uniqueIndex()
+    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at")
+}

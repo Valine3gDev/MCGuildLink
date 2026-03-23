@@ -1,7 +1,7 @@
 package io.github.valine3gdev.mcguildlink.app.minecraft
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.valine3gdev.mcguildlink.app.config.ServerConfig
+import io.github.valine3gdev.mcguildlink.app.config.MinecraftServerConfig
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.CompoundBinaryTag
 import net.kyori.adventure.text.Component
@@ -22,8 +22,8 @@ import kotlin.time.toJavaDuration
 private val logger = KotlinLogging.logger {}
 
 
-class Server(
-    private val config: ServerConfig
+class MinecraftServer(
+    private val config: MinecraftServerConfig
 ) {
     companion object {
         private val CODE_SUBMIT_KEY = Key.key("mcguildlink:submit_code")
