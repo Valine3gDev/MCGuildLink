@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import java.nio.file.Path
 import kotlin.io.path.readText
+import kotlin.time.Duration
 
 
 @Serializable
@@ -31,4 +32,5 @@ data class BotConfig(
 data class ServerConfig(
     val address: String,
     val port: Int,
+    val timeout: Duration,
 )
