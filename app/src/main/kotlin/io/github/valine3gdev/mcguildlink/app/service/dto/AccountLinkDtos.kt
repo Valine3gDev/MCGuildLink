@@ -8,6 +8,15 @@ data class LinkRequestResult(
 )
 
 
+sealed interface LinkResult {
+    data class Success(val discordAccount: DiscordAccountInfo) : LinkResult
+
+    object InvalidCode : LinkResult
+
+    object AlreadyLinked : LinkResult
+}
+
+
 data class DiscordAccountInfo(
     val userId: ULong,
     val lastKnownUsername: String,

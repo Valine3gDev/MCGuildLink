@@ -3,6 +3,7 @@ package io.github.valine3gdev.mcguildlink.app.minecraft
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.valine3gdev.mcguildlink.app.config.MinecraftServerConfig
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
+import io.github.valine3gdev.mcguildlink.app.service.dto.LinkResult
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.CompoundBinaryTag
 import net.kyori.adventure.text.Component
@@ -95,10 +96,7 @@ class MinecraftServer(
         val uuid = player.uuid
 
         when (event.key) {
-            DIALOG_SUCCESS_KEY -> {
-                logger.info { "Player $username ($uuid) completed authentication successfully. Disconnecting." }
-                player.kick("正常に切断されました。")
-            }
+            DIALOG_SUCCESS_KEY -> player.kick("正常に切断されました。")
 
             CODE_SUBMIT_KEY -> {
                 val payload = event.payload as? CompoundBinaryTag ?: run {
@@ -119,16 +117,20 @@ class MinecraftServer(
                     return
                 }
 
-                val discord = accountLinkService.consumeCodeAndLink(code, uuid.toKotlinUuid(), username) ?: run {
-                    showCodeDialog(
+                when (val result = accountLinkService.consumeCodeAndLink(code, uuid.toKotlinUuid(), username)) {
+                    is LinkResult.InvalidCode -> showCodeDialog(
                         player,
-                        initialCode = code,
-                        errorMessage = "コードを確認できませんでした。もう一度入力してください。"
+                        code,
+                        "無効なコードです。もう一度入力してください。"
                     )
-                    return
-                }
 
-                showSuccessDialog(player, discord.lastKnownUsername)
+                    is LinkResult.AlreadyLinked -> showAlreadyLinkedDialog(player)
+
+                    is LinkResult.Success -> {
+                        logger.info { "Player $username ($uuid) completed authentication successfully, linked with Discord user ${result.discordAccount.lastKnownUsername} (${result.discordAccount.userId})." }
+                        showSuccessDialog(player, result.discordAccount.lastKnownUsername)
+                    }
+                }
             }
 
             else -> return
@@ -203,6 +205,17 @@ class MinecraftServer(
                 "切断",
                 DIALOG_SUCCESS_KEY,
                 listOf("$discordUsername との紐付けが完了しました。")
+            )
+        )
+    }
+
+    private fun showAlreadyLinkedDialog(player: Player) {
+        player.showDialog(
+            buildDialog(
+                "既に紐付け済みです。",
+                "切断",
+                DIALOG_SUCCESS_KEY,
+                listOf("このMinecraftアカウントとこのDiscordアカウントは既に紐付けられています。")
             )
         )
     }
