@@ -1,0 +1,69 @@
+package io.github.valine3gdev.mcguildlink.app.discord.accountlink
+
+import dev.kord.common.entity.ButtonStyle
+import dev.kord.common.entity.MessageFlag
+import dev.kord.common.entity.MessageFlags
+import dev.kord.common.entity.Permission
+import dev.kord.common.entity.SeparatorSpacingSize
+import dev.kord.core.behavior.channel.createMessage
+import dev.kord.core.behavior.interaction.response.respond
+import dev.kord.core.builder.components.emoji
+import dev.kord.core.entity.ReactionEmoji
+import dev.kord.rest.builder.component.actionRow
+import dev.kord.rest.builder.message.container
+import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
+
+
+internal fun InteractionRegistry.installCreatePanelCommand() {
+    chatInputCommand(
+        CREATE_PANEL_COMMAND_NAME,
+        "紐付けを開始するためのパネルを送信します。"
+    ) {
+        requiredBotPermissions = Permission.ViewChannel + Permission.SendMessages
+
+        handle {
+            val deferred = interaction.deferEphemeralResponse()
+
+            interaction.channel.createMessage {
+                flags = MessageFlags(MessageFlag.IsComponentsV2)
+
+                container {
+                    textDisplay(
+                        """
+                            Minecraftアカウントと Discordアカウントを紐付けます。
+                            「MCアカウントと紐付ける」ボタンを押して、手順に従ってください。
+                            「紐付けられたアカウントを確認する」ボタンを押すと、現在紐付けられているアカウントの一覧を確認できます。
+
+                            ## 紐付け手順
+                            TODO
+                        """.trimIndent()
+                    )
+
+                    separator(SeparatorSpacingSize.Large)
+
+                    actionRow {
+                        interactionButton(
+                            ButtonStyle.Primary,
+                            START_LINK_BUTTON_ID,
+                        ) {
+                            emoji(ReactionEmoji.Unicode("\uD83D\uDD17"))
+                            label = "MCアカウントと紐付ける"
+                        }
+
+                        interactionButton(
+                            ButtonStyle.Secondary,
+                            LIST_LINK_BUTTON_ID,
+                        ) {
+                            emoji(ReactionEmoji.Unicode("\uD83D\uDCCB"))
+                            label = "紐付けられたアカウントを確認する"
+                        }
+                    }
+                }
+            }
+
+            deferred.respond {
+                content = "パネルを作成しました！"
+            }
+        }
+    }
+}
