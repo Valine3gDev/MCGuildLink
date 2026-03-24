@@ -42,7 +42,9 @@ data class ChatInputCommand(
     }
 
     suspend fun createCommand(kord: Kord, guildId: Snowflake) {
-        kord.createGuildChatInputCommand(guildId, name, description) {}
+        kord.createGuildChatInputCommand(guildId, name, description) {
+            disableCommandInGuilds()
+        }
     }
 }
 
