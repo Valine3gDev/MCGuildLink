@@ -11,7 +11,8 @@ import io.github.valine3gdev.mcguildlink.app.util.unlinkByDiscord
 
 private val logger = KotlinLogging.logger {}
 
-internal fun Kord.installAccountLinkMemberLeaveHandler(accountLinkService: AccountLinkService) {
+context(accountLinkService: AccountLinkService)
+internal fun Kord.installAccountLinkMemberLeaveHandler() {
     on<MemberLeaveEvent> {
         accountLinkService.unlinkByDiscord(user)
     }

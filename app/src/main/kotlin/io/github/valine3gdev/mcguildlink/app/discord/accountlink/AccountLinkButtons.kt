@@ -21,7 +21,8 @@ import io.github.valine3gdev.mcguildlink.app.util.getOrCreateLinkRequest
 
 private val logger = KotlinLogging.logger {}
 
-internal fun InteractionRegistry.installAccountLinkButtons(accountLinkService: AccountLinkService) {
+context(accountLinkService: AccountLinkService)
+internal fun InteractionRegistry.installAccountLinkButtons() {
     interactionButton(START_LINK_BUTTON_ID) {
         val request = accountLinkService.getOrCreateLinkRequest(interaction.user)
         logger.info { "Requesting link code for user ${interaction.user.tag} (${interaction.user.id}): ${request.code}" }

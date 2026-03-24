@@ -26,7 +26,9 @@ class Bot(
         }
 
         val interactions = InteractionRegistry(kord)
-        installAccountLinkHandlers(kord, interactions, accountLinkService)
+        context(accountLinkService) {
+            installAccountLinkHandlers(kord, interactions)
+        }
 
         interactions.registerCommands(config.guild)
 

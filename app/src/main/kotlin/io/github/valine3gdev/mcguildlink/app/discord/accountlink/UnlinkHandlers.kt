@@ -10,7 +10,8 @@ import io.github.valine3gdev.mcguildlink.app.util.getLinkOrNull
 import io.github.valine3gdev.mcguildlink.app.util.unlink
 
 
-internal fun InteractionRegistry.installUnlinkHandlers(accountLinkService: AccountLinkService) {
+context(accountLinkService: AccountLinkService)
+internal fun InteractionRegistry.installUnlinkHandlers() {
     interactionButton(createCustomId(UNLINK_BUTTON_ID_PREFIX)) {
         val (userId, uuid) = it ?: error("Invalid custom ID data for unlink button: ${interaction.componentId}")
         if (userId != interaction.user.id) {

@@ -5,18 +5,18 @@ import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistr
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 
 
+context(accountLinkService: AccountLinkService)
 fun installAccountLinkHandlers(
     kord: Kord,
     interactions: InteractionRegistry,
-    accountLinkService: AccountLinkService,
 ) {
     with(interactions) {
         installCreatePanelCommand()
-        installAccountLinkButtons(accountLinkService)
-        installUnlinkHandlers(accountLinkService)
+        installAccountLinkButtons()
+        installUnlinkHandlers()
     }
 
     with(kord) {
-        installAccountLinkMemberLeaveHandler(accountLinkService)
+        installAccountLinkMemberLeaveHandler()
     }
 }

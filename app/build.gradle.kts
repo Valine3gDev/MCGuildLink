@@ -21,7 +21,10 @@ kotlin {
     }
     compilerOptions {
         optIn.addAll("kotlin.uuid.ExperimentalUuidApi")
-        freeCompilerArgs.addAll("-Xexplicit-backing-fields")
+        freeCompilerArgs.addAll(
+            "-Xexplicit-backing-fields",
+            "-Xcontext-parameters"
+        )
     }
 }
 
