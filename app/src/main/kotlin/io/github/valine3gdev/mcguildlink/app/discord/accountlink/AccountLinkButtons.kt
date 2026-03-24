@@ -13,7 +13,7 @@ import dev.kord.rest.builder.component.separator
 import dev.kord.rest.builder.message.container
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
-import io.github.valine3gdev.mcguildlink.app.discord.registry.createCustomIdString
+import io.github.valine3gdev.mcguildlink.app.discord.registry.createLinkedCustomIdString
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import io.github.valine3gdev.mcguildlink.app.util.getLinkedMinecraftAccounts
 import io.github.valine3gdev.mcguildlink.app.util.getOrCreateLinkRequest
@@ -83,7 +83,7 @@ internal fun InteractionRegistry.installAccountLinkButtons() {
                     actionRow {
                         interactionButton(
                             ButtonStyle.Danger,
-                            createCustomIdString(UNLINK_BUTTON_ID_PREFIX, interaction.user, uuid),
+                            createLinkedCustomIdString(UNLINK_BUTTON_ID_PREFIX, interaction.user, uuid),
                         ) {
                             emoji(ReactionEmoji.Unicode("\uD83D\uDCCB"))
                             label = "解除"

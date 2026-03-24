@@ -26,7 +26,7 @@ class PrefixCustomId<T>(
     override fun parse(id: String): T? = parser?.invoke(id.removePrefix(prefix))
 }
 
-fun createCustomId(prefix: String) = PrefixCustomId(prefix) { data ->
+fun createLinkedCustomId(prefix: String) = PrefixCustomId(prefix) { data ->
     data.split("/").takeIf { it.size == 2 }?.let {
         val (userIdStr, uuidStr) = it
         val uuid = Uuid.parseHexDash(uuidStr)
@@ -35,5 +35,5 @@ fun createCustomId(prefix: String) = PrefixCustomId(prefix) { data ->
     }
 }
 
-fun createCustomIdString(prefix: String, user: User, mcUuid: Uuid) =
+fun createLinkedCustomIdString(prefix: String, user: User, mcUuid: Uuid) =
     "${prefix}${user.id.value}/${mcUuid.toHexDashString()}"

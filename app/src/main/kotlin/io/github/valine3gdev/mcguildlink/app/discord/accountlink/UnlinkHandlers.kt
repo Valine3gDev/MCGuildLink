@@ -3,8 +3,8 @@ package io.github.valine3gdev.mcguildlink.app.discord.accountlink
 import dev.kord.core.behavior.interaction.modal
 import dev.kord.core.behavior.interaction.respondEphemeral
 import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
-import io.github.valine3gdev.mcguildlink.app.discord.registry.createCustomId
-import io.github.valine3gdev.mcguildlink.app.discord.registry.createCustomIdString
+import io.github.valine3gdev.mcguildlink.app.discord.registry.createLinkedCustomId
+import io.github.valine3gdev.mcguildlink.app.discord.registry.createLinkedCustomIdString
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import io.github.valine3gdev.mcguildlink.app.util.getLinkOrNull
 import io.github.valine3gdev.mcguildlink.app.util.unlink
@@ -12,7 +12,7 @@ import io.github.valine3gdev.mcguildlink.app.util.unlink
 
 context(accountLinkService: AccountLinkService)
 internal fun InteractionRegistry.installUnlinkHandlers() {
-    interactionButton(createCustomId(UNLINK_BUTTON_ID_PREFIX)) {
+    interactionButton(createLinkedCustomId(UNLINK_BUTTON_ID_PREFIX)) {
         val (userId, uuid) = it ?: error("Invalid custom ID data for unlink button: ${interaction.componentId}")
         if (userId != interaction.user.id) {
             interaction.respondEphemeral {
@@ -30,7 +30,7 @@ internal fun InteractionRegistry.installUnlinkHandlers() {
 
         interaction.modal(
             title = "アカウントの紐付け解除",
-            customId = createCustomIdString(UNLINK_MODAL_ID_PREFIX, interaction.user, uuid)
+            customId = createLinkedCustomIdString(UNLINK_MODAL_ID_PREFIX, interaction.user, uuid)
         ) {
             textDisplay {
                 content = """
@@ -47,7 +47,7 @@ internal fun InteractionRegistry.installUnlinkHandlers() {
         }
     }
 
-    interactionModal(createCustomId(UNLINK_MODAL_ID_PREFIX)) {
+    interactionModal(createLinkedCustomId(UNLINK_MODAL_ID_PREFIX)) {
         val (userId, uuid) = it ?: error("Invalid custom ID data for unlink modal: ${interaction.modalId}")
         if (userId != interaction.user.id) {
             interaction.respondEphemeral {
