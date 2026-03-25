@@ -1,14 +1,15 @@
 package io.github.valine3gdev.mcguildlink.app.discord.registry
 
+import dev.kord.common.annotation.KordDsl
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
-import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.interaction.GuildModalSubmitInteractionCreateEvent
 import dev.kord.core.on
 
 
+@KordDsl
 class InteractionRegistry(private val kord: Kord) {
     private val chatInputCommands = mutableMapOf<String, ChatInputCommand>()
     private val buttonInteractions = mutableSetOf<InteractionButton<*>>()
