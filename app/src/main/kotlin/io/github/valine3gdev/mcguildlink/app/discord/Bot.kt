@@ -45,8 +45,13 @@ class Bot(
         }
 
         kord.login {
-            @OptIn(PrivilegedIntent::class)
-            intents += Intent.GuildMembers + Intent.GuildModeration
+            intents {
+                @OptIn(PrivilegedIntent::class)
+                +Intent.GuildMembers
+
+                +Intent.Guilds
+                +Intent.GuildModeration
+            }
         }
     }
 }
