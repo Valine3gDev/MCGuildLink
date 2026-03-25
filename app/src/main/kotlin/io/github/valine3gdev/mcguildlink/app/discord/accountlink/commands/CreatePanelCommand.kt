@@ -1,4 +1,4 @@
-package io.github.valine3gdev.mcguildlink.app.discord.accountlink
+package io.github.valine3gdev.mcguildlink.app.discord.accountlink.commands
 
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.MessageFlag
@@ -11,6 +11,9 @@ import dev.kord.core.builder.components.emoji
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.rest.builder.component.actionRow
 import dev.kord.rest.builder.message.container
+import io.github.valine3gdev.mcguildlink.app.discord.accountlink.CREATE_PANEL_COMMAND_NAME
+import io.github.valine3gdev.mcguildlink.app.discord.accountlink.LIST_LINK_BUTTON_ID
+import io.github.valine3gdev.mcguildlink.app.discord.accountlink.START_LINK_BUTTON_ID
 import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
 
 

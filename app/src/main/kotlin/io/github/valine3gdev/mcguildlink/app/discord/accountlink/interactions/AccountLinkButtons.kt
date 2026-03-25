@@ -1,4 +1,4 @@
-package io.github.valine3gdev.mcguildlink.app.discord.accountlink
+package io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions
 
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.MessageFlag
@@ -12,6 +12,9 @@ import dev.kord.rest.builder.component.section
 import dev.kord.rest.builder.component.separator
 import dev.kord.rest.builder.message.container
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.valine3gdev.mcguildlink.app.discord.accountlink.LIST_LINK_BUTTON_ID
+import io.github.valine3gdev.mcguildlink.app.discord.accountlink.START_LINK_BUTTON_ID
+import io.github.valine3gdev.mcguildlink.app.discord.accountlink.UNLINK_BUTTON_ID_PREFIX
 import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
 import io.github.valine3gdev.mcguildlink.app.discord.registry.createLinkedCustomIdString
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService

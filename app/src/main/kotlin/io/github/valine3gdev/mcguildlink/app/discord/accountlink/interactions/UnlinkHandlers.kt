@@ -1,7 +1,10 @@
-package io.github.valine3gdev.mcguildlink.app.discord.accountlink
+package io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions
 
 import dev.kord.core.behavior.interaction.modal
 import dev.kord.core.behavior.interaction.respondEphemeral
+import io.github.valine3gdev.mcguildlink.app.discord.accountlink.UNLINK_BUTTON_ID_PREFIX
+import io.github.valine3gdev.mcguildlink.app.discord.accountlink.UNLINK_CONFIRM_CHECKBOX_ID
+import io.github.valine3gdev.mcguildlink.app.discord.accountlink.UNLINK_MODAL_ID_PREFIX
 import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
 import io.github.valine3gdev.mcguildlink.app.discord.registry.createLinkedCustomId
 import io.github.valine3gdev.mcguildlink.app.discord.registry.createLinkedCustomIdString
