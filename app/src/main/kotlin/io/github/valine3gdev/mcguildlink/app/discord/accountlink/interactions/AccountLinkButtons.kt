@@ -1,28 +1,37 @@
 package io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions
 
 import dev.kord.common.entity.ButtonStyle
-import dev.kord.common.entity.MessageFlag
-import dev.kord.common.entity.MessageFlags
 import dev.kord.common.entity.SeparatorSpacingSize
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.builder.components.emoji
 import dev.kord.core.entity.ReactionEmoji
+import dev.kord.core.entity.User
+import dev.kord.rest.builder.component.ContainerBuilder
 import dev.kord.rest.builder.component.actionRow
 import dev.kord.rest.builder.component.section
 import dev.kord.rest.builder.component.separator
-import dev.kord.rest.builder.message.container
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.LIST_LINK_BUTTON_ID
+import io.github.valine3gdev.mcguildlink.app.discord.accountlink.LIST_LINK_PAGE_BUTTON_ID_PREFIX
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.START_LINK_BUTTON_ID
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.UNLINK_BUTTON_ID_PREFIX
+import io.github.valine3gdev.mcguildlink.app.discord.registry.EphemeralPagination
 import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
+import io.github.valine3gdev.mcguildlink.app.discord.registry.PaginationSnapshotPage
 import io.github.valine3gdev.mcguildlink.app.discord.registry.createLinkedCustomIdString
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
+import io.github.valine3gdev.mcguildlink.app.service.dto.MinecraftAccountInfo
 import io.github.valine3gdev.mcguildlink.app.util.getLinkedMinecraftAccounts
 import io.github.valine3gdev.mcguildlink.app.util.getOrCreateLinkRequest
 
 
 private val logger = KotlinLogging.logger {}
+
+private val linkedAccountsPagination = EphemeralPagination(
+    prefix = LIST_LINK_PAGE_BUTTON_ID_PREFIX,
+    pageSize = 5,
+    renderPage = { user, page -> applyLinkedAccountsPage(page, user) },
+)
 
 context(accountLinkService: AccountLinkService)
 internal fun InteractionRegistry.installAccountLinkButtons() {
@@ -40,60 +49,65 @@ internal fun InteractionRegistry.installAccountLinkButtons() {
     }
 
     interactionButton(LIST_LINK_BUTTON_ID) {
-        val minecraftAccounts = accountLinkService.getLinkedMinecraftAccounts(interaction.user)
-
-        if (minecraftAccounts.isEmpty()) {
+        val accounts = accountLinkService.getLinkedMinecraftAccounts(interaction.user)
+        if (accounts.isEmpty()) {
             interaction.respondEphemeral {
                 content = "あなたの Discordアカウントに紐付けられた Minecraftアカウントはありません。"
             }
             return@interactionButton
         }
 
-        // TODO: ページネーションしないと大量のアカウントを紐付けている場合に送信できなくなる可能性がある
-        interaction.respondEphemeral {
-            flags = MessageFlags(MessageFlag.IsComponentsV2)
+        linkedAccountsPagination.respondEphemeralPaginatedSnapshot(interaction, accounts)
+    }
 
-            container {
-                textDisplay(
-                    """
-                        ## 紐付けられたアカウント
-                        以下の Minecraftアカウントがあなたの Discordアカウントに紐付けられています。
-                        紐付けを解除したいアカウントがある場合は、各アカウントの「解除」ボタンを押してください。
-                    """.trimIndent()
-                )
+    linkedAccountsPagination.installPaginationButton()
+}
 
-                separator {
-                    spacing = SeparatorSpacingSize.Large
-                    divider = false
-                }
+private fun ContainerBuilder.applyLinkedAccountsPage(
+    page: PaginationSnapshotPage<MinecraftAccountInfo>,
+    user: User,
+) {
+    textDisplay(
+        """
+            ## 紐付けられたアカウント
+            以下の Minecraftアカウントがあなたの Discordアカウントに紐付けられています。
+            紐付けを解除したいアカウントがある場合は、各アカウントの「解除」ボタンを押してください。
+        """.trimIndent()
+    )
 
-                minecraftAccounts.forEach { minecraft ->
-                    val uuid = minecraft.uuid
+    separator {
+        divider = false
+    }
 
-                    separator(SeparatorSpacingSize.Large)
+    page.entries.forEach { minecraft ->
+        appendMinecraftAccount(user, minecraft)
+    }
+}
 
-                    section {
-                        textDisplay(
-                            """
-                                - 名前: **${minecraft.lastKnownName}**
-                                - UUID: `$uuid`
-                            """.trimIndent()
-                        )
-                        thumbnailAccessory {
-                            url = "https://mc-heads.net/avatar/$uuid"
-                        }
-                    }
-                    actionRow {
-                        interactionButton(
-                            ButtonStyle.Danger,
-                            createLinkedCustomIdString(UNLINK_BUTTON_ID_PREFIX, interaction.user, uuid),
-                        ) {
-                            emoji(ReactionEmoji.Unicode("\uD83D\uDCCB"))
-                            label = "解除"
-                        }
-                    }
-                }
-            }
+private fun ContainerBuilder.appendMinecraftAccount(user: User, minecraft: MinecraftAccountInfo) {
+    val uuid = minecraft.uuid
+
+    separator(SeparatorSpacingSize.Large)
+
+    section {
+        textDisplay(
+            """
+                - 名前: **${minecraft.lastKnownName}**
+                - UUID: `$uuid`
+            """.trimIndent()
+        )
+        thumbnailAccessory {
+            url = "https://mc-heads.net/avatar/$uuid"
+        }
+    }
+
+    actionRow {
+        interactionButton(
+            ButtonStyle.Danger,
+            createLinkedCustomIdString(UNLINK_BUTTON_ID_PREFIX, user, uuid),
+        ) {
+            emoji(ReactionEmoji.Unicode("\uD83D\uDDD1\uFE0F"))
+            label = "解除"
         }
     }
 }
