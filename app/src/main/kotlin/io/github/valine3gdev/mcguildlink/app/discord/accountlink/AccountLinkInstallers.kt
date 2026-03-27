@@ -32,10 +32,10 @@ fun installAccountLinkHandlers(
 }
 
 context(accountLinkService: AccountLinkService, accountBlockService: AccountBlockService)
-suspend fun installCommands(kord: Kord, guildId: Snowflake) {
+suspend fun installCommands(kord: Kord, guildId: Snowflake, moderatorRole: Snowflake) {
     with(kord) {
-        installBlockAccountCommand(guildId)
-        installCreatePanelCommand(guildId)
-        installListLinksCommand(guildId)
+        installBlockAccountCommand(guildId, moderatorRole)
+        installCreatePanelCommand(guildId, moderatorRole)
+        installListLinksCommand(guildId, moderatorRole)
     }
 }

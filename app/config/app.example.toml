@@ -1,6 +1,7 @@
 [bot]
 token = "YOUR_BOT_TOKEN_HERE"
 guild = 0 # Replace with your guild ID
+moderator_role = 0 # Replace with your moderator role ID
 
 [minecraft_server]
 address = "::1"

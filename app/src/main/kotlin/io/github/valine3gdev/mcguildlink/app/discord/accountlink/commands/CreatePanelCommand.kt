@@ -11,13 +11,15 @@ import dev.kord.rest.builder.message.container
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.LIST_LINK_BUTTON_ID
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.START_LINK_BUTTON_ID
 import io.github.valine3gdev.mcguildlink.app.discord.util.checkBotPermissions
+import io.github.valine3gdev.mcguildlink.app.discord.util.checkUserRole
 import io.github.valine3gdev.mcguildlink.app.discord.util.handleRoot
 
 
-internal suspend fun Kord.installCreatePanelCommand(guildId: Snowflake) {
+internal suspend fun Kord.installCreatePanelCommand(guildId: Snowflake, moderatorRole: Snowflake) {
     createGuildChatInputCommand(guildId, "create_panel", "紐付けを開始するためのパネルを送信します。") {
         disableCommandInGuilds()
     }.handleRoot {
+        checkUserRole(moderatorRole) || return@handleRoot
         checkBotPermissions(Permission.ViewChannel + Permission.SendMessages) || return@handleRoot
 
         val deferred = interaction.deferEphemeralResponse()

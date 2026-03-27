@@ -28,6 +28,9 @@ data class Config(
 data class BotConfig(
     val token: String,
     val guild: Snowflake,
+
+    @SerialName("moderator_role")
+    val moderatorRole: Snowflake,
 )
 
 

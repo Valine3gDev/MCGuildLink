@@ -9,6 +9,7 @@ import dev.kord.rest.builder.interaction.user
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.respondAllAccountLinksPaginated
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.respondDiscordAccountLinksPaginated
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.respondMinecraftAccountLinksPaginated
+import io.github.valine3gdev.mcguildlink.app.discord.util.checkUserRole
 import io.github.valine3gdev.mcguildlink.app.discord.util.handleSub
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import kotlin.uuid.Uuid
@@ -18,7 +19,7 @@ private const val USER_OPTION_KEY = "user"
 private const val UUID_OPTION_KEY = "uuid"
 
 context(accountLinkService: AccountLinkService)
-internal suspend fun Kord.installListLinksCommand(guildId: Snowflake) {
+internal suspend fun Kord.installListLinksCommand(guildId: Snowflake, moderatorRole: Snowflake) {
     createGuildChatInputCommand(
         guildId,
         "links",
@@ -40,6 +41,8 @@ internal suspend fun Kord.installListLinksCommand(guildId: Snowflake) {
 
         subCommand("all", "全ての紐付け一覧を表示します。")
     }.handleSub("discord") {
+        checkUserRole(moderatorRole) || return@handleSub
+
         val target = interaction.command.users[USER_OPTION_KEY] ?: run {
             interaction.respondEphemeral {
                 content = "対象の Discordユーザーを指定してください。"
@@ -57,6 +60,8 @@ internal suspend fun Kord.installListLinksCommand(guildId: Snowflake) {
 
         respondDiscordAccountLinksPaginated(interaction, links)
     }.handleSub("minecraft") {
+        checkUserRole(moderatorRole) || return@handleSub
+
         val uuidText = interaction.command.strings[UUID_OPTION_KEY] ?: run {
             interaction.respondEphemeral {
                 content = "対象の Minecraft UUID を指定してください。"
@@ -81,6 +86,8 @@ internal suspend fun Kord.installListLinksCommand(guildId: Snowflake) {
 
         respondMinecraftAccountLinksPaginated(interaction, links)
     }.handleSub("all") {
+        checkUserRole(moderatorRole) || return@handleSub
+
         val links = accountLinkService.listAllLinks()
         if (links.isEmpty()) {
             interaction.respondEphemeral {

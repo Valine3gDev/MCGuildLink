@@ -6,6 +6,7 @@ import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.rest.builder.interaction.subCommand
 import dev.kord.rest.builder.interaction.user
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.respondBlockedAccountsPaginated
+import io.github.valine3gdev.mcguildlink.app.discord.util.checkUserRole
 import io.github.valine3gdev.mcguildlink.app.discord.util.handleSub
 import io.github.valine3gdev.mcguildlink.app.service.AccountBlockService
 import io.github.valine3gdev.mcguildlink.app.service.dto.BlockResult
@@ -17,7 +18,7 @@ import io.github.valine3gdev.mcguildlink.app.util.unblockDiscordAccount
 private const val USER_OPTION_KEY = "user"
 
 context(accountBlockService: AccountBlockService)
-internal suspend fun Kord.installBlockAccountCommand(guildId: Snowflake) {
+internal suspend fun Kord.installBlockAccountCommand(guildId: Snowflake, moderatorRole: Snowflake) {
     createGuildChatInputCommand(
         guildId,
         "block",
@@ -40,6 +41,8 @@ internal suspend fun Kord.installBlockAccountCommand(guildId: Snowflake) {
         subCommand("list", "ブロックされている Discordアカウントの一覧を表示します。")
 
     }.handleSub("add") {
+        checkUserRole(moderatorRole) || return@handleSub
+
         val target = interaction.command.users[USER_OPTION_KEY] ?: run {
             interaction.respondEphemeral {
                 content = "ブロック対象の Discordユーザーを指定してください。"
@@ -62,6 +65,8 @@ internal suspend fun Kord.installBlockAccountCommand(guildId: Snowflake) {
             }
         }
     }.handleSub("remove") {
+        checkUserRole(moderatorRole) || return@handleSub
+
         val target = interaction.command.users[USER_OPTION_KEY] ?: run {
             interaction.respondEphemeral {
                 content = "ブロック解除対象の Discordユーザーを指定してください。"
@@ -84,6 +89,8 @@ internal suspend fun Kord.installBlockAccountCommand(guildId: Snowflake) {
             }
         }
     }.handleSub("list") {
+        checkUserRole(moderatorRole) || return@handleSub
+
         val blockedGroups = accountBlockService.listBlockedDiscordAccountGroups()
         if (blockedGroups.isEmpty()) {
             interaction.respondEphemeral {

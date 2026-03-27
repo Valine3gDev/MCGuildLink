@@ -32,7 +32,7 @@ class Bot(
         context(accountLinkService, accountBlockService) {
             installAccountLinkHandlers(kord, interactions)
 
-            installCommands(kord, config.guild)
+            installCommands(kord, config.guild, config.moderatorRole)
         }
 
         kord.on<GuildCreateEvent> {
