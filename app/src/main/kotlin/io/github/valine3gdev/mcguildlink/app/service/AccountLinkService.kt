@@ -20,7 +20,8 @@ import kotlin.uuid.Uuid
 
 class AccountLinkService(
     private val db: Database,
-    private val codeGenerator: LinkCodeGenerator = RandomLinkCodeGenerator()
+    private val codeGenerator: LinkCodeGenerator = RandomLinkCodeGenerator(),
+    private val whitelistRefreshRequester: WhitelistRefreshRequester = NoopWhitelistRefreshRequester,
 ) {
     suspend fun getOrCreateLinkRequest(discordUserId: ULong, username: String) = suspendTransaction(db) {
         val discord = AccountStore.getOrCreateDiscordAccount(discordUserId, username)
@@ -36,7 +37,8 @@ class AccountLinkService(
         LinkRequestResult.Success(request.code)
     }
 
-    fun consumeCodeAndLink(code: String, uuid: Uuid, name: String) = transaction(db) {
+    fun consumeCodeAndLink(code: String, uuid: Uuid, name: String): LinkResult {
+        val result = transaction(db) {
         val request = LinkRequestEntity.find {
             LinkRequests.code eq code
         }.firstOrNull() ?: return@transaction LinkResult.InvalidCode
@@ -64,6 +66,13 @@ class AccountLinkService(
         request.delete()
 
         LinkResult.Success(DiscordAccountInfo(discord.userId, discord.lastKnownUsername))
+        }
+
+        if (result is LinkResult.Success) {
+            whitelistRefreshRequester.requestRefresh()
+        }
+
+        return result
     }
 
     suspend fun getLinkedMinecraftAccounts(userId: ULong): List<MinecraftAccountInfo> = suspendTransaction(db) {
@@ -112,15 +121,37 @@ class AccountLinkService(
             .sortedByDescending { it.linkedAt }
     }
 
-    suspend fun unlink(discordUserId: ULong, minecraftUuid: Uuid) = suspendTransaction(db) {
-        val link = AccountStore.getAccountLinkOrNull(discordUserId, minecraftUuid) ?: return@suspendTransaction false
-        link.delete()
-        true
+    suspend fun unlink(discordUserId: ULong, minecraftUuid: Uuid): Boolean {
+        val removed = suspendTransaction(db) {
+            val link = AccountStore.getAccountLinkOrNull(discordUserId, minecraftUuid) ?: return@suspendTransaction false
+            link.delete()
+            true
+        }
+
+        if (removed) {
+            whitelistRefreshRequester.requestRefresh()
+        }
+
+        return removed
     }
 
-    suspend fun unlinkByDiscord(discordUserId: ULong) = suspendTransaction(db) {
-        val discord = AccountStore.getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction false
-        discord.links.forEach { it.delete() }
+    suspend fun unlinkByDiscord(discordUserId: ULong): Boolean {
+        val removed = suspendTransaction(db) {
+            val discord = AccountStore.getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction false
+            val links = discord.links.toList()
+            if (links.isEmpty()) {
+                return@suspendTransaction false
+            }
+
+            links.forEach { it.delete() }
+            true
+        }
+
+        if (removed) {
+            whitelistRefreshRequester.requestRefresh()
+        }
+
+        return removed
     }
 
     private fun generateUniqueCode(): String {

@@ -7,6 +7,8 @@ import kotlin.io.path.createDirectories
 data class AppPaths(
     val appHome: Path,
     val configFile: Path,
+    val staticDir: Path,
+    val whitelistFile: Path,
     val dataDir: Path,
     val dbFile: Path,
 ) {
@@ -31,14 +33,19 @@ data class AppPaths(
             }
 
             val configFile = appHome.resolve("config/app.toml")
+            val staticDir = appHome.resolve("static")
+            val whitelistFile = staticDir.resolve("whitelist.json")
             val dataDir = appHome.resolve("data")
             val dbFile = dataDir.resolve("app.db")
 
+            staticDir.createDirectories()
             dataDir.createDirectories()
 
             return AppPaths(
                 appHome = appHome,
                 configFile = configFile,
+                staticDir = staticDir,
+                whitelistFile = whitelistFile,
                 dataDir = dataDir,
                 dbFile = dbFile,
             )

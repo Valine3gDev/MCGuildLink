@@ -11,6 +11,8 @@ plugins {
 dependencies {
     implementation(libs.bundles.implementation)
     runtimeOnly(libs.slf4j.simple)
+
+    testImplementation(kotlin("test"))
 }
 
 kotlin {

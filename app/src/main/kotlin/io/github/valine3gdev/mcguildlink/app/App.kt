@@ -6,6 +6,7 @@ import io.github.valine3gdev.mcguildlink.app.discord.Bot
 import io.github.valine3gdev.mcguildlink.app.minecraft.MinecraftServer
 import io.github.valine3gdev.mcguildlink.app.service.AccountBlockService
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
+import io.github.valine3gdev.mcguildlink.app.service.WhitelistFileSyncService
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
@@ -17,8 +18,19 @@ class App(
 
     private val db = DatabaseFactory.connect(paths.dbFile)
 
-    private val accountLinkService = AccountLinkService(db)
-    private val accountBlockService = AccountBlockService(db)
+    private val whitelistFileSyncService = WhitelistFileSyncService(
+        db = db,
+        whitelistFile = paths.whitelistFile,
+    )
+
+    private val accountLinkService = AccountLinkService(
+        db = db,
+        whitelistRefreshRequester = whitelistFileSyncService,
+    )
+    private val accountBlockService = AccountBlockService(
+        db = db,
+        whitelistRefreshRequester = whitelistFileSyncService,
+    )
 
     val bot = Bot(
         config = config.bot,
@@ -32,6 +44,9 @@ class App(
     )
 
     suspend fun start() = coroutineScope {
+        whitelistFileSyncService.generateNow()
+        whitelistFileSyncService.attach(this)
+
         minecraftServer.start()
 
         launch { bot.start() }

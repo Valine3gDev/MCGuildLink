@@ -22,6 +22,7 @@ import java.time.Instant
 
 class AccountBlockService(
     private val db: Database,
+    private val whitelistRefreshRequester: WhitelistRefreshRequester = NoopWhitelistRefreshRequester,
 ) {
     private fun BlockGroupEntity.toInfo() = BlockedAccountGroupInfo(
         rootDiscordAccount = DiscordAccountInfo(
@@ -67,77 +68,89 @@ class AccountBlockService(
         }
     }
 
-    suspend fun blockDiscordAccount(discordUserId: ULong, username: String) = suspendTransaction(db) {
-        val rootDiscord = AccountStore.getOrCreateDiscordAccount(discordUserId, username)
-        if (rootDiscord.isBlocked()) {
-            return@suspendTransaction BlockResult.AlreadyBlocked
-        }
-
-        val (discordAccounts, minecraftAccounts) = collectConnectedAccounts(rootDiscord)
-        if (discordAccounts.any { it.isBlocked() } || minecraftAccounts.any { it.isBlocked() }) {
-            return@suspendTransaction BlockResult.AlreadyBlocked
-        }
-
-        val blockGroup = BlockGroupEntity.new {
-            rootDiscordAccount = rootDiscord
-            createdAt = Instant.now()
-        }
-
-        discordAccounts.forEach { discord ->
-            BlockedDiscordAccountEntity.new {
-                this.blockGroup = blockGroup
-                discordAccount = discord
+    suspend fun blockDiscordAccount(discordUserId: ULong, username: String): BlockResult {
+        val result = suspendTransaction(db) {
+            val rootDiscord = AccountStore.getOrCreateDiscordAccount(discordUserId, username)
+            if (rootDiscord.isBlocked()) {
+                return@suspendTransaction BlockResult.AlreadyBlocked
             }
-        }
 
-        minecraftAccounts.forEach { minecraft ->
-            BlockedMinecraftAccountEntity.new {
-                this.blockGroup = blockGroup
-                minecraftAccount = minecraft
+            val (discordAccounts, minecraftAccounts) = collectConnectedAccounts(rootDiscord)
+            if (discordAccounts.any { it.isBlocked() } || minecraftAccounts.any { it.isBlocked() }) {
+                return@suspendTransaction BlockResult.AlreadyBlocked
             }
-        }
 
-        val discordIds = discordAccounts.mapTo(mutableListOf()) { it.id }
-        val minecraftIds = minecraftAccounts.mapTo(mutableListOf()) { it.id }
+            val blockGroup = BlockGroupEntity.new {
+                rootDiscordAccount = rootDiscord
+                createdAt = Instant.now()
+            }
 
-        if (discordIds.isNotEmpty() || minecraftIds.isNotEmpty()) {
-            AccountLinkEntity.find {
-                when {
-                    discordIds.isNotEmpty() && minecraftIds.isNotEmpty() ->
-                        (AccountLinks.discordAccount inList discordIds) or (AccountLinks.minecraftAccount inList minecraftIds)
-
-                    discordIds.isNotEmpty() ->
-                        AccountLinks.discordAccount inList discordIds
-
-                    else ->
-                        AccountLinks.minecraftAccount inList minecraftIds
+            discordAccounts.forEach { discord ->
+                BlockedDiscordAccountEntity.new {
+                    this.blockGroup = blockGroup
+                    discordAccount = discord
                 }
-            }.toList().forEach { it.delete() }
+            }
+
+            minecraftAccounts.forEach { minecraft ->
+                BlockedMinecraftAccountEntity.new {
+                    this.blockGroup = blockGroup
+                    minecraftAccount = minecraft
+                }
+            }
+
+            val discordIds = discordAccounts.mapTo(mutableListOf()) { it.id }
+            val minecraftIds = minecraftAccounts.mapTo(mutableListOf()) { it.id }
+
+            if (discordIds.isNotEmpty() || minecraftIds.isNotEmpty()) {
+                AccountLinkEntity.find {
+                    when {
+                        discordIds.isNotEmpty() && minecraftIds.isNotEmpty() ->
+                            (AccountLinks.discordAccount inList discordIds) or (AccountLinks.minecraftAccount inList minecraftIds)
+
+                        discordIds.isNotEmpty() ->
+                            AccountLinks.discordAccount inList discordIds
+
+                        else ->
+                            AccountLinks.minecraftAccount inList minecraftIds
+                    }
+                }.toList().forEach { it.delete() }
+            }
+
+            if (discordIds.isNotEmpty()) {
+                LinkRequestEntity.find {
+                    LinkRequests.discordAccount inList discordIds
+                }.toList().forEach { it.delete() }
+            }
+
+            BlockResult.Success(
+                rootDiscordAccount = DiscordAccountInfo(rootDiscord.userId, rootDiscord.lastKnownUsername),
+                blockedDiscordAccounts = discordAccounts.size,
+                blockedMinecraftAccounts = minecraftAccounts.size,
+            )
         }
 
-        if (discordIds.isNotEmpty()) {
-            LinkRequestEntity.find {
-                LinkRequests.discordAccount inList discordIds
-            }.toList().forEach { it.delete() }
+        if (result is BlockResult.Success) {
+            whitelistRefreshRequester.requestRefresh()
         }
 
-        BlockResult.Success(
-            rootDiscordAccount = DiscordAccountInfo(rootDiscord.userId, rootDiscord.lastKnownUsername),
-            blockedDiscordAccounts = discordAccounts.size,
-            blockedMinecraftAccounts = minecraftAccounts.size,
-        )
+        return result
     }
 
-    suspend fun unblockDiscordAccount(discordUserId: ULong) = suspendTransaction(db) {
-        val discord = AccountStore.getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction UnblockResult.NotBlocked
-        val blockGroup = discord.blockedMembership?.blockGroup ?: return@suspendTransaction UnblockResult.NotBlocked
-        val blockGroupInfo = blockGroup.toInfo()
+    suspend fun unblockDiscordAccount(discordUserId: ULong): UnblockResult {
+        val result = suspendTransaction(db) {
+            val discord = AccountStore.getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction UnblockResult.NotBlocked
+            val blockGroup = discord.blockedMembership?.blockGroup ?: return@suspendTransaction UnblockResult.NotBlocked
+            val blockGroupInfo = blockGroup.toInfo()
 
-        blockGroup.blockedDiscordAccounts.toList().forEach { it.delete() }
-        blockGroup.blockedMinecraftAccounts.toList().forEach { it.delete() }
-        blockGroup.delete()
+            blockGroup.blockedDiscordAccounts.toList().forEach { it.delete() }
+            blockGroup.blockedMinecraftAccounts.toList().forEach { it.delete() }
+            blockGroup.delete()
 
-        UnblockResult.Success(blockGroupInfo)
+            UnblockResult.Success(blockGroupInfo)
+        }
+
+        return result
     }
 
     suspend fun listBlockedDiscordAccountGroups() = suspendTransaction(db) {

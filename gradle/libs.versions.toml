@@ -2,6 +2,7 @@
 kotlin = "2.3.20"
 
 kotlinx-coroutines = "1.10.2"
+kotlinx-serialization-json = "1.9.0"
 tomlkt = "0.6.0"
 minestom = "2026.03.25-1.21.11"
 kord = "0.18.1"
@@ -15,6 +16,7 @@ slf4j = "2.0.17"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 tomlkt = { module = "dev.eav.tomlkt:tomlkt", version.ref = "tomlkt" }
 minestom = { module = "net.minestom:minestom", version.ref = "minestom" }
 kord-core = { module = "dev.kord:kord-core", version.ref = "kord" }
@@ -32,6 +34,7 @@ slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 [bundles]
 implementation = [
     "kotlinx-coroutines-core",
+    "kotlinx-serialization-json",
     "tomlkt",
     "minestom",
     "kord-core",

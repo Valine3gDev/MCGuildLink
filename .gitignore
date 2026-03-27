@@ -45,3 +45,4 @@ bin/
 ### Project specific ###
 /app/config/app.toml
 /app/data/*
+/app/static/*
