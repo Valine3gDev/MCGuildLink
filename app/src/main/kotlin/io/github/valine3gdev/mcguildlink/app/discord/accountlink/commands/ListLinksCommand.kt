@@ -9,7 +9,7 @@ import dev.kord.rest.builder.interaction.user
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.respondAllAccountLinksPaginated
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.respondDiscordAccountLinksPaginated
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.respondMinecraftAccountLinksPaginated
-import io.github.valine3gdev.mcguildlink.app.discord.util.checkUserRole
+import io.github.valine3gdev.mcguildlink.app.discord.util.guardUserRole
 import io.github.valine3gdev.mcguildlink.app.discord.util.handleSub
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import kotlin.uuid.Uuid
@@ -41,7 +41,7 @@ internal suspend fun Kord.installListLinksCommand(guildId: Snowflake, moderatorR
 
         subCommand("all", "全ての紐付け一覧を表示します。")
     }.handleSub("discord") {
-        checkUserRole(moderatorRole) || return@handleSub
+        guardUserRole(moderatorRole) || return@handleSub
 
         val target = interaction.command.users[USER_OPTION_KEY] ?: run {
             interaction.respondEphemeral {
@@ -60,7 +60,7 @@ internal suspend fun Kord.installListLinksCommand(guildId: Snowflake, moderatorR
 
         respondDiscordAccountLinksPaginated(interaction, links)
     }.handleSub("minecraft") {
-        checkUserRole(moderatorRole) || return@handleSub
+        guardUserRole(moderatorRole) || return@handleSub
 
         val uuidText = interaction.command.strings[UUID_OPTION_KEY] ?: run {
             interaction.respondEphemeral {
@@ -86,7 +86,7 @@ internal suspend fun Kord.installListLinksCommand(guildId: Snowflake, moderatorR
 
         respondMinecraftAccountLinksPaginated(interaction, links)
     }.handleSub("all") {
-        checkUserRole(moderatorRole) || return@handleSub
+        guardUserRole(moderatorRole) || return@handleSub
 
         val links = accountLinkService.listAllLinks()
         if (links.isEmpty()) {

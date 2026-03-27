@@ -10,8 +10,8 @@ import dev.kord.rest.builder.component.actionRow
 import dev.kord.rest.builder.message.container
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.LIST_LINK_BUTTON_ID
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.START_LINK_BUTTON_ID
-import io.github.valine3gdev.mcguildlink.app.discord.util.checkBotPermissions
-import io.github.valine3gdev.mcguildlink.app.discord.util.checkUserRole
+import io.github.valine3gdev.mcguildlink.app.discord.util.guardBotPermissions
+import io.github.valine3gdev.mcguildlink.app.discord.util.guardUserRole
 import io.github.valine3gdev.mcguildlink.app.discord.util.handleRoot
 
 
@@ -19,8 +19,8 @@ internal suspend fun Kord.installCreatePanelCommand(guildId: Snowflake, moderato
     createGuildChatInputCommand(guildId, "create_panel", "紐付けを開始するためのパネルを送信します。") {
         disableCommandInGuilds()
     }.handleRoot {
-        checkUserRole(moderatorRole) || return@handleRoot
-        checkBotPermissions(Permission.ViewChannel + Permission.SendMessages) || return@handleRoot
+        guardUserRole(moderatorRole) || return@handleRoot
+        guardBotPermissions(Permission.ViewChannel + Permission.SendMessages) || return@handleRoot
 
         val deferred = interaction.deferEphemeralResponse()
 

@@ -6,7 +6,7 @@ import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.rest.builder.interaction.subCommand
 import dev.kord.rest.builder.interaction.user
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.respondBlockedAccountsPaginated
-import io.github.valine3gdev.mcguildlink.app.discord.util.checkUserRole
+import io.github.valine3gdev.mcguildlink.app.discord.util.guardUserRole
 import io.github.valine3gdev.mcguildlink.app.discord.util.handleSub
 import io.github.valine3gdev.mcguildlink.app.service.AccountBlockService
 import io.github.valine3gdev.mcguildlink.app.service.dto.BlockResult
@@ -41,7 +41,7 @@ internal suspend fun Kord.installBlockAccountCommand(guildId: Snowflake, moderat
         subCommand("list", "ブロックされている Discordアカウントの一覧を表示します。")
 
     }.handleSub("add") {
-        checkUserRole(moderatorRole) || return@handleSub
+        guardUserRole(moderatorRole) || return@handleSub
 
         val target = interaction.command.users[USER_OPTION_KEY] ?: run {
             interaction.respondEphemeral {
@@ -65,7 +65,7 @@ internal suspend fun Kord.installBlockAccountCommand(guildId: Snowflake, moderat
             }
         }
     }.handleSub("remove") {
-        checkUserRole(moderatorRole) || return@handleSub
+        guardUserRole(moderatorRole) || return@handleSub
 
         val target = interaction.command.users[USER_OPTION_KEY] ?: run {
             interaction.respondEphemeral {
@@ -89,7 +89,7 @@ internal suspend fun Kord.installBlockAccountCommand(guildId: Snowflake, moderat
             }
         }
     }.handleSub("list") {
-        checkUserRole(moderatorRole) || return@handleSub
+        guardUserRole(moderatorRole) || return@handleSub
 
         val blockedGroups = accountBlockService.listBlockedDiscordAccountGroups()
         if (blockedGroups.isEmpty()) {

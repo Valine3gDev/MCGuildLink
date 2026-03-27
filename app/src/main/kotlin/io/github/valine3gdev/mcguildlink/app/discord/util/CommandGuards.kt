@@ -6,7 +6,7 @@ import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 
 
-suspend fun GuildChatInputCommandInteractionCreateEvent.checkBotPermissions(requiredBotPermissions: Permissions): Boolean {
+suspend fun GuildChatInputCommandInteractionCreateEvent.guardBotPermissions(requiredBotPermissions: Permissions): Boolean {
     if (!interaction.appPermissions.contains(requiredBotPermissions)) {
         val required = requiredBotPermissions - interaction.appPermissions
         interaction.respondEphemeral {
@@ -20,7 +20,7 @@ suspend fun GuildChatInputCommandInteractionCreateEvent.checkBotPermissions(requ
     return true
 }
 
-suspend fun GuildChatInputCommandInteractionCreateEvent.checkUserRole(requiredUserRoleId: Snowflake): Boolean {
+suspend fun GuildChatInputCommandInteractionCreateEvent.guardUserRole(requiredUserRoleId: Snowflake): Boolean {
     if (!interaction.user.roleIds.contains(requiredUserRoleId)) {
         interaction.respondEphemeral {
             content = "このコマンドを実行する権限があなたにありません。"
