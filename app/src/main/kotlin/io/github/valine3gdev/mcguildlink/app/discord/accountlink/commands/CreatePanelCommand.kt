@@ -5,6 +5,8 @@ import dev.kord.common.entity.MessageFlag
 import dev.kord.common.entity.MessageFlags
 import dev.kord.common.entity.Permission
 import dev.kord.common.entity.SeparatorSpacingSize
+import dev.kord.common.entity.Snowflake
+import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.core.builder.components.emoji
@@ -14,25 +16,25 @@ import dev.kord.rest.builder.message.container
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.CREATE_PANEL_COMMAND_NAME
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.LIST_LINK_BUTTON_ID
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.START_LINK_BUTTON_ID
-import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
+import io.github.valine3gdev.mcguildlink.app.discord.util.handleRoot
+import io.github.valine3gdev.mcguildlink.app.discord.util.checkBotPermissions
 
 
-internal fun InteractionRegistry.installCreatePanelCommand() {
-    chatInputCommand(
-        CREATE_PANEL_COMMAND_NAME,
-        "紐付けを開始するためのパネルを送信します。"
-    ) {
-        requiredBotPermissions = Permission.ViewChannel + Permission.SendMessages
 
-        handle {
-            val deferred = interaction.deferEphemeralResponse()
+internal suspend fun Kord.installCreatePanelCommand(guildId: Snowflake) {
+    createGuildChatInputCommand(guildId, CREATE_PANEL_COMMAND_NAME, "紐付けを開始するためのパネルを送信します。") {
+        disableCommandInGuilds()
+    }.handleRoot {
+        checkBotPermissions(Permission.ViewChannel + Permission.SendMessages) || return@handleRoot
 
-            interaction.channel.createMessage {
-                flags = MessageFlags(MessageFlag.IsComponentsV2)
+        val deferred = interaction.deferEphemeralResponse()
 
-                container {
-                    textDisplay(
-                        """
+        interaction.channel.createMessage {
+            flags = MessageFlags(MessageFlag.IsComponentsV2)
+
+            container {
+                textDisplay(
+                    """
                             Minecraftアカウントと Discordアカウントを紐付けます。
                             「MCアカウントと紐付ける」ボタンを押して、手順に従ってください。
                             「紐付けられたアカウントを確認する」ボタンを押すと、現在紐付けられているアカウントの一覧を確認できます。
@@ -40,33 +42,32 @@ internal fun InteractionRegistry.installCreatePanelCommand() {
                             ## 紐付け手順
                             TODO
                         """.trimIndent()
-                    )
+                )
 
-                    separator(SeparatorSpacingSize.Large)
+                separator(SeparatorSpacingSize.Large)
 
-                    actionRow {
-                        interactionButton(
-                            ButtonStyle.Primary,
-                            START_LINK_BUTTON_ID,
-                        ) {
-                            emoji(ReactionEmoji.Unicode("\uD83D\uDD17"))
-                            label = "MCアカウントと紐付ける"
-                        }
+                actionRow {
+                    interactionButton(
+                        ButtonStyle.Primary,
+                        START_LINK_BUTTON_ID,
+                    ) {
+                        emoji(ReactionEmoji.Unicode("\uD83D\uDD17"))
+                        label = "MCアカウントと紐付ける"
+                    }
 
-                        interactionButton(
-                            ButtonStyle.Secondary,
-                            LIST_LINK_BUTTON_ID,
-                        ) {
-                            emoji(ReactionEmoji.Unicode("\uD83D\uDCCB"))
-                            label = "紐付けられたアカウントを確認する"
-                        }
+                    interactionButton(
+                        ButtonStyle.Secondary,
+                        LIST_LINK_BUTTON_ID,
+                    ) {
+                        emoji(ReactionEmoji.Unicode("\uD83D\uDCCB"))
+                        label = "紐付けられたアカウントを確認する"
                     }
                 }
             }
+        }
 
-            deferred.respond {
-                content = "パネルを作成しました！"
-            }
+        deferred.respond {
+            content = "パネルを作成しました！"
         }
     }
 }

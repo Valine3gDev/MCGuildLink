@@ -10,6 +10,7 @@ import dev.kord.gateway.PrivilegedIntent
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.valine3gdev.mcguildlink.app.config.BotConfig
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.installAccountLinkHandlers
+import io.github.valine3gdev.mcguildlink.app.discord.accountlink.installCommands
 import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import kotlinx.coroutines.flow.collect
@@ -28,9 +29,9 @@ class Bot(
         val interactions = InteractionRegistry(kord)
         context(accountLinkService) {
             installAccountLinkHandlers(kord, interactions)
-        }
 
-        interactions.registerCommands(config.guild)
+            installCommands(kord, config.guild)
+        }
 
         // TODO: 紐付け Ban 状態を管理するコマンド (add, remove, list)
         // TODO: 紐付け一覧を表示する特殊権限用コマンド (discord, minecraft, all)

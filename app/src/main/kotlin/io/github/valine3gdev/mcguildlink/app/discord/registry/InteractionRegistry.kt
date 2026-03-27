@@ -1,47 +1,20 @@
 package io.github.valine3gdev.mcguildlink.app.discord.registry
 
 import dev.kord.common.annotation.KordDsl
-import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
-import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.interaction.GuildModalSubmitInteractionCreateEvent
 import dev.kord.core.on
 
 
 @KordDsl
-class InteractionRegistry(private val kord: Kord) {
-    private val chatInputCommands = mutableMapOf<String, ChatInputCommand>()
+class InteractionRegistry(kord: Kord) {
     private val buttonInteractions = mutableSetOf<InteractionButton<*>>()
     private val modalInteractions = mutableSetOf<InteractionModal<*>>()
 
     init {
-        kord.on<GuildChatInputCommandInteractionCreateEvent> { handleCommands() }
         kord.on<GuildButtonInteractionCreateEvent> { handleButtonInteractions() }
         kord.on<GuildModalSubmitInteractionCreateEvent> { handleModalSubmissions() }
-    }
-
-    private suspend fun GuildChatInputCommandInteractionCreateEvent.handleCommands() {
-        val command = chatInputCommands[interaction.command.rootName]
-            ?: error("Command ${interaction.command} cannot be found")
-
-        command.dispatch(this)
-    }
-
-    fun chatInputCommand(
-        name: String,
-        description: String,
-        builder: ChatInputCommandBuilder.() -> Unit
-    ) {
-        val command = ChatInputCommandBuilder(name, description)
-            .apply(builder)
-            .build()
-
-        chatInputCommands[name] = command
-    }
-
-    suspend fun registerCommands(guildId: Snowflake) {
-        chatInputCommands.values.forEach { it.createCommand(kord, guildId) }
     }
 
     private suspend fun GuildButtonInteractionCreateEvent.handleButtonInteractions() {
