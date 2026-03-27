@@ -1,9 +1,8 @@
 package io.github.valine3gdev.mcguildlink.app.service
 
-import io.github.valine3gdev.mcguildlink.app.db.DatabaseFactory
 import io.github.valine3gdev.mcguildlink.app.service.dto.BlockResult
-import io.github.valine3gdev.mcguildlink.app.service.dto.LinkRequestResult
-import io.github.valine3gdev.mcguildlink.app.service.dto.LinkResult
+import io.github.valine3gdev.mcguildlink.app.testutil.TestEnvironment
+import io.github.valine3gdev.mcguildlink.app.testutil.createLink
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,9 +16,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.io.IOException
-import java.nio.file.Path
 import kotlin.io.path.createDirectories
-import kotlin.io.path.createTempDirectory
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
@@ -50,21 +47,21 @@ class WhitelistFileSyncServiceTest {
         val linkService = AccountLinkService(environment.db)
         val service = WhitelistFileSyncService(environment.db, environment.whitelistFile)
 
-        link(
+        createLink(
             linkService = linkService,
             discordUserId = 1u,
             discordUsername = "discord-1",
             minecraftUuid = Uuid.parse("00000000-0000-0000-0000-000000000002"),
             minecraftName = "MiXeDCaSe",
         )
-        link(
+        createLink(
             linkService = linkService,
             discordUserId = 2u,
             discordUsername = "discord-2",
             minecraftUuid = Uuid.parse("00000000-0000-0000-0000-000000000002"),
             minecraftName = "MiXeDCaSe",
         )
-        link(
+        createLink(
             linkService = linkService,
             discordUserId = 3u,
             discordUsername = "discord-3",
@@ -94,7 +91,7 @@ class WhitelistFileSyncServiceTest {
         val blockService = AccountBlockService(environment.db)
         val service = WhitelistFileSyncService(environment.db, environment.whitelistFile)
 
-        link(
+        createLink(
             linkService = linkService,
             discordUserId = 1u,
             discordUsername = "discord-1",
@@ -130,7 +127,7 @@ class WhitelistFileSyncServiceTest {
             """.trimIndent()
         )
 
-        link(
+        createLink(
             linkService = linkService,
             discordUserId = 1u,
             discordUsername = "discord-1",
@@ -172,7 +169,7 @@ class WhitelistFileSyncServiceTest {
         val minecraftUuid = Uuid.parse("00000000-0000-0000-0000-000000000050")
 
         try {
-            link(
+            createLink(
                 linkService = setupLinkService,
                 discordUserId = 1u,
                 discordUsername = "discord-1",
@@ -197,27 +194,4 @@ class WhitelistFileSyncServiceTest {
             collectorJob.join()
         }
     }
-}
-
-
-private class TestEnvironment {
-    val root = createTempDirectory("mcguildlink-test-")
-    val db = DatabaseFactory.connect(root.resolve("app.db"))
-    val whitelistFile: Path = root.resolve("static/whitelist.json")
-}
-
-
-private suspend fun link(
-    linkService: AccountLinkService,
-    discordUserId: ULong,
-    discordUsername: String,
-    minecraftUuid: Uuid,
-    minecraftName: String,
-) {
-    val request = assertIs<LinkRequestResult.Success>(
-        linkService.getOrCreateLinkRequest(discordUserId, discordUsername)
-    )
-
-    val result = linkService.consumeCodeAndLink(request.code, minecraftUuid, minecraftName)
-    assertIs<LinkResult.Success>(result)
 }

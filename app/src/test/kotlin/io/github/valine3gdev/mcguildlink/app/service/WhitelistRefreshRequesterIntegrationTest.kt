@@ -1,12 +1,12 @@
 package io.github.valine3gdev.mcguildlink.app.service
 
-import io.github.valine3gdev.mcguildlink.app.db.DatabaseFactory
 import io.github.valine3gdev.mcguildlink.app.service.dto.BlockResult
 import io.github.valine3gdev.mcguildlink.app.service.dto.LinkRequestResult
 import io.github.valine3gdev.mcguildlink.app.service.dto.LinkResult
 import io.github.valine3gdev.mcguildlink.app.service.dto.UnblockResult
+import io.github.valine3gdev.mcguildlink.app.testutil.CountingWhitelistRefreshRequester
+import io.github.valine3gdev.mcguildlink.app.testutil.createTestDatabase
 import kotlinx.coroutines.runBlocking
-import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -17,7 +17,7 @@ class WhitelistRefreshRequesterIntegrationTest {
     @Test
     fun `account link service requests refresh only for successful link changes`() = runBlocking {
         val requester = CountingWhitelistRefreshRequester()
-        val db = DatabaseFactory.connect(createTempDirectory("mcguildlink-test-").resolve("app.db"))
+        val db = createTestDatabase()
         val service = AccountLinkService(
             db = db,
             whitelistRefreshRequester = requester,
@@ -64,7 +64,7 @@ class WhitelistRefreshRequesterIntegrationTest {
     @Test
     fun `account block service requests refresh only for successful block changes`() = runBlocking {
         val requester = CountingWhitelistRefreshRequester()
-        val db = DatabaseFactory.connect(createTempDirectory("mcguildlink-test-").resolve("app.db"))
+        val db = createTestDatabase()
         val linkService = AccountLinkService(db)
         val service = AccountBlockService(
             db = db,
@@ -88,14 +88,5 @@ class WhitelistRefreshRequesterIntegrationTest {
 
         assertIs<UnblockResult.NotBlocked>(service.unblockDiscordAccount(1u))
         assertEquals(1, requester.count)
-    }
-}
-
-
-private class CountingWhitelistRefreshRequester : WhitelistRefreshRequester {
-    var count: Int = 0
-
-    override fun requestRefresh() {
-        count += 1
     }
 }
