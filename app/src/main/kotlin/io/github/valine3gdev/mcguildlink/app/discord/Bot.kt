@@ -35,9 +35,6 @@ class Bot(
             installCommands(kord, config.guild)
         }
 
-        // TODO: 紐付け Ban 状態を管理するコマンド (add, remove, list)
-        // TODO: 紐付け一覧を表示する特殊権限用コマンド (discord, minecraft, all)
-
         kord.on<GuildCreateEvent> {
             @OptIn(PrivilegedIntent::class)
             guild.requestMembers().collect()

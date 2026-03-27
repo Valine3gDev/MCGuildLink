@@ -48,6 +48,13 @@ data class BlockedAccountGroupInfo(
 )
 
 
+data class AccountLinkSummary(
+    val discordAccount: DiscordAccountInfo,
+    val minecraftAccount: MinecraftAccountInfo,
+    val linkedAt: Instant,
+)
+
+
 data class DiscordAccountInfo(
     val userId: ULong,
     val lastKnownUsername: String,

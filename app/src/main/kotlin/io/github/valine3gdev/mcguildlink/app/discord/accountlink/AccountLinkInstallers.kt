@@ -4,7 +4,9 @@ import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.commands.installBlockAccountCommand
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.commands.installCreatePanelCommand
+import io.github.valine3gdev.mcguildlink.app.discord.accountlink.commands.installListLinksCommand
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.installAccountLinkButtons
+import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.installAccountLinksPagination
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.installBlockAccountPagination
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.installUnlinkHandlers
 import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
@@ -19,6 +21,7 @@ fun installAccountLinkHandlers(
 ) {
     with(interactions) {
         installAccountLinkButtons()
+        installAccountLinksPagination()
         installBlockAccountPagination()
         installUnlinkHandlers()
     }
@@ -33,5 +36,6 @@ suspend fun installCommands(kord: Kord, guildId: Snowflake) {
     with(kord) {
         installBlockAccountCommand(guildId)
         installCreatePanelCommand(guildId)
+        installListLinksCommand(guildId)
     }
 }

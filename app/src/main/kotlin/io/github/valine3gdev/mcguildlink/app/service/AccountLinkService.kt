@@ -3,6 +3,7 @@ package io.github.valine3gdev.mcguildlink.app.service
 import io.github.valine3gdev.mcguildlink.app.db.AccountLinkEntity
 import io.github.valine3gdev.mcguildlink.app.db.LinkRequestEntity
 import io.github.valine3gdev.mcguildlink.app.db.LinkRequests
+import io.github.valine3gdev.mcguildlink.app.service.dto.AccountLinkSummary
 import io.github.valine3gdev.mcguildlink.app.service.dto.DiscordAccountInfo
 import io.github.valine3gdev.mcguildlink.app.service.dto.LinkRequestResult
 import io.github.valine3gdev.mcguildlink.app.service.dto.LinkResult
@@ -91,6 +92,26 @@ class AccountLinkService(
         )
     }
 
+    suspend fun listLinksByDiscord(discordUserId: ULong): List<AccountLinkSummary> = suspendTransaction(db) {
+        val discord = AccountStore.getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction emptyList()
+        discord.links
+            .map { it.toSummary() }
+            .sortedByDescending { it.linkedAt }
+    }
+
+    suspend fun listLinksByMinecraft(uuid: Uuid): List<AccountLinkSummary> = suspendTransaction(db) {
+        val minecraft = AccountStore.getMinecraftAccountOrNull(uuid) ?: return@suspendTransaction emptyList()
+        minecraft.links
+            .map { it.toSummary() }
+            .sortedByDescending { it.linkedAt }
+    }
+
+    suspend fun listAllLinks(): List<AccountLinkSummary> = suspendTransaction(db) {
+        AccountLinkEntity.all()
+            .map { it.toSummary() }
+            .sortedByDescending { it.linkedAt }
+    }
+
     suspend fun unlink(discordUserId: ULong, minecraftUuid: Uuid) = suspendTransaction(db) {
         val link = AccountStore.getAccountLinkOrNull(discordUserId, minecraftUuid) ?: return@suspendTransaction false
         link.delete()
@@ -112,4 +133,15 @@ class AccountLinkService(
         }
         error("Failed to generate unique link code")
     }
+}
+
+private fun AccountLinkEntity.toSummary(): AccountLinkSummary {
+    val discord = discordAccount
+    val minecraft = minecraftAccount
+
+    return AccountLinkSummary(
+        discordAccount = DiscordAccountInfo(discord.userId, discord.lastKnownUsername),
+        minecraftAccount = MinecraftAccountInfo(minecraft.uuid, minecraft.lastKnownName),
+        linkedAt = linkedAt,
+    )
 }
