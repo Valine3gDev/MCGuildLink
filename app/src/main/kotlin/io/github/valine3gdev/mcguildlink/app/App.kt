@@ -4,6 +4,7 @@ import io.github.valine3gdev.mcguildlink.app.config.Config
 import io.github.valine3gdev.mcguildlink.app.db.DatabaseFactory
 import io.github.valine3gdev.mcguildlink.app.discord.Bot
 import io.github.valine3gdev.mcguildlink.app.minecraft.MinecraftServer
+import io.github.valine3gdev.mcguildlink.app.service.AccountBlockService
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -17,10 +18,12 @@ class App(
     private val db = DatabaseFactory.connect(paths.dbFile)
 
     private val accountLinkService = AccountLinkService(db)
+    private val accountBlockService = AccountBlockService(db)
 
     val bot = Bot(
         config = config.bot,
         accountLinkService = accountLinkService,
+        accountBlockService = accountBlockService,
     )
 
     val minecraftServer = MinecraftServer(

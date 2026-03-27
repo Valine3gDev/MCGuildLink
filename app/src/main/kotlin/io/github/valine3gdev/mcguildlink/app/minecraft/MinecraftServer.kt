@@ -126,6 +126,8 @@ class MinecraftServer(
 
                     is LinkResult.AlreadyLinked -> showAlreadyLinkedDialog(player)
 
+                    LinkResult.Blocked -> showBlockedDialog(player)
+
                     is LinkResult.Success -> {
                         logger.info { "Player $username ($uuid) completed authentication successfully, linked with Discord user ${result.discordAccount.lastKnownUsername} (${result.discordAccount.userId})." }
                         showSuccessDialog(player, result.discordAccount.lastKnownUsername)
@@ -216,6 +218,17 @@ class MinecraftServer(
                 "切断",
                 DIALOG_SUCCESS_KEY,
                 listOf("このMinecraftアカウントとこのDiscordアカウントは既に紐付けられています。")
+            )
+        )
+    }
+
+    private fun showBlockedDialog(player: Player) {
+        player.showDialog(
+            buildDialog(
+                "紐付けできません。",
+                "切断",
+                DIALOG_SUCCESS_KEY,
+                listOf("このアカウントはブロックされているため、紐付けを続行できません。")
             )
         )
     }

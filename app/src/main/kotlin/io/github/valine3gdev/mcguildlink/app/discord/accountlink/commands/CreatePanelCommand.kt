@@ -1,11 +1,6 @@
 package io.github.valine3gdev.mcguildlink.app.discord.accountlink.commands
 
-import dev.kord.common.entity.ButtonStyle
-import dev.kord.common.entity.MessageFlag
-import dev.kord.common.entity.MessageFlags
-import dev.kord.common.entity.Permission
-import dev.kord.common.entity.SeparatorSpacingSize
-import dev.kord.common.entity.Snowflake
+import dev.kord.common.entity.*
 import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.interaction.response.respond
@@ -13,16 +8,14 @@ import dev.kord.core.builder.components.emoji
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.rest.builder.component.actionRow
 import dev.kord.rest.builder.message.container
-import io.github.valine3gdev.mcguildlink.app.discord.accountlink.CREATE_PANEL_COMMAND_NAME
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.LIST_LINK_BUTTON_ID
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.START_LINK_BUTTON_ID
-import io.github.valine3gdev.mcguildlink.app.discord.util.handleRoot
 import io.github.valine3gdev.mcguildlink.app.discord.util.checkBotPermissions
-
+import io.github.valine3gdev.mcguildlink.app.discord.util.handleRoot
 
 
 internal suspend fun Kord.installCreatePanelCommand(guildId: Snowflake) {
-    createGuildChatInputCommand(guildId, CREATE_PANEL_COMMAND_NAME, "紐付けを開始するためのパネルを送信します。") {
+    createGuildChatInputCommand(guildId, "create_panel", "紐付けを開始するためのパネルを送信します。") {
         disableCommandInGuilds()
     }.handleRoot {
         checkBotPermissions(Permission.ViewChannel + Permission.SendMessages) || return@handleRoot

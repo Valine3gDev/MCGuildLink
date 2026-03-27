@@ -3,6 +3,6 @@ token = "YOUR_BOT_TOKEN_HERE"
 guild = 0 # Replace with your guild ID
 
 [minecraft_server]
-address = "0.0.0.0"
+address = "::1"
 port = 25565
 timeout = "PT5M"

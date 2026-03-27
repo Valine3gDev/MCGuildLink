@@ -1,6 +1,7 @@
 package io.github.valine3gdev.mcguildlink.app.util
 
 import dev.kord.core.entity.User
+import io.github.valine3gdev.mcguildlink.app.service.AccountBlockService
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import kotlin.uuid.Uuid
 
@@ -19,3 +20,9 @@ suspend fun AccountLinkService.unlink(user: User, minecraftUuid: Uuid) =
 
 suspend fun AccountLinkService.unlinkByDiscord(user: User) =
     unlinkByDiscord(user.id.value)
+
+suspend fun AccountBlockService.blockDiscordAccount(user: User) =
+    blockDiscordAccount(user.id.value, user.username)
+
+suspend fun AccountBlockService.unblockDiscordAccount(user: User) =
+    unblockDiscordAccount(user.id.value)

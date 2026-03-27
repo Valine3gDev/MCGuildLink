@@ -12,6 +12,7 @@ import io.github.valine3gdev.mcguildlink.app.config.BotConfig
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.installAccountLinkHandlers
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.installCommands
 import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
+import io.github.valine3gdev.mcguildlink.app.service.AccountBlockService
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import kotlinx.coroutines.flow.collect
 
@@ -21,13 +22,14 @@ private val logger = KotlinLogging.logger {}
 class Bot(
     private val config: BotConfig,
     private val accountLinkService: AccountLinkService,
+    private val accountBlockService: AccountBlockService,
 ) {
     suspend fun start() {
         val kord = Kord(config.token) {
         }
 
         val interactions = InteractionRegistry(kord)
-        context(accountLinkService) {
+        context(accountLinkService, accountBlockService) {
             installAccountLinkHandlers(kord, interactions)
 
             installCommands(kord, config.guild)

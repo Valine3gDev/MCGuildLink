@@ -13,6 +13,7 @@ class DiscordAccountEntity(id: EntityID<Int>) : IntEntity(id) {
 
     val links by AccountLinkEntity referrersOn AccountLinks.discordAccount
     val linkRequest by LinkRequestEntity optionalBackReferencedOn LinkRequests.discordAccount
+    val blockedMembership by BlockedDiscordAccountEntity optionalBackReferencedOn BlockedDiscordAccounts.discordAccount
 }
 
 
@@ -23,6 +24,7 @@ class MinecraftAccountEntity(id: EntityID<Int>) : IntEntity(id) {
     var lastKnownName by MinecraftAccounts.lastKnownName
 
     val links by AccountLinkEntity referrersOn AccountLinks.minecraftAccount
+    val blockedMembership by BlockedMinecraftAccountEntity optionalBackReferencedOn BlockedMinecraftAccounts.minecraftAccount
 }
 
 
@@ -40,4 +42,31 @@ class LinkRequestEntity(id: EntityID<Int>) : IntEntity(id) {
 
     var discordAccount by DiscordAccountEntity referencedOn LinkRequests.discordAccount
     var code by LinkRequests.code
+}
+
+
+class BlockGroupEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<BlockGroupEntity>(BlockGroups)
+
+    var rootDiscordAccount by DiscordAccountEntity referencedOn BlockGroups.rootDiscordAccount
+    var createdAt by BlockGroups.createdAt
+
+    val blockedDiscordAccounts by BlockedDiscordAccountEntity referrersOn BlockedDiscordAccounts.blockGroup
+    val blockedMinecraftAccounts by BlockedMinecraftAccountEntity referrersOn BlockedMinecraftAccounts.blockGroup
+}
+
+
+class BlockedDiscordAccountEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<BlockedDiscordAccountEntity>(BlockedDiscordAccounts)
+
+    var blockGroup by BlockGroupEntity referencedOn BlockedDiscordAccounts.blockGroup
+    var discordAccount by DiscordAccountEntity referencedOn BlockedDiscordAccounts.discordAccount
+}
+
+
+class BlockedMinecraftAccountEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<BlockedMinecraftAccountEntity>(BlockedMinecraftAccounts)
+
+    var blockGroup by BlockGroupEntity referencedOn BlockedMinecraftAccounts.blockGroup
+    var minecraftAccount by MinecraftAccountEntity referencedOn BlockedMinecraftAccounts.minecraftAccount
 }

@@ -12,7 +12,6 @@ import dev.kord.rest.builder.component.section
 import dev.kord.rest.builder.component.separator
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.LIST_LINK_BUTTON_ID
-import io.github.valine3gdev.mcguildlink.app.discord.accountlink.LIST_LINK_PAGE_BUTTON_ID_PREFIX
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.START_LINK_BUTTON_ID
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.UNLINK_BUTTON_ID_PREFIX
 import io.github.valine3gdev.mcguildlink.app.discord.registry.EphemeralPagination
@@ -20,6 +19,7 @@ import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistr
 import io.github.valine3gdev.mcguildlink.app.discord.registry.PaginationSnapshotPage
 import io.github.valine3gdev.mcguildlink.app.discord.registry.createLinkedCustomIdString
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
+import io.github.valine3gdev.mcguildlink.app.service.dto.LinkRequestResult
 import io.github.valine3gdev.mcguildlink.app.service.dto.MinecraftAccountInfo
 import io.github.valine3gdev.mcguildlink.app.util.getLinkedMinecraftAccounts
 import io.github.valine3gdev.mcguildlink.app.util.getOrCreateLinkRequest
@@ -28,7 +28,7 @@ import io.github.valine3gdev.mcguildlink.app.util.getOrCreateLinkRequest
 private val logger = KotlinLogging.logger {}
 
 private val linkedAccountsPagination = EphemeralPagination(
-    prefix = LIST_LINK_PAGE_BUTTON_ID_PREFIX,
+    prefix = "list_link_page_button:",
     pageSize = 5,
     renderPage = { user, page -> applyLinkedAccountsPage(page, user) },
 )
@@ -36,15 +36,22 @@ private val linkedAccountsPagination = EphemeralPagination(
 context(accountLinkService: AccountLinkService)
 internal fun InteractionRegistry.installAccountLinkButtons() {
     interactionButton(START_LINK_BUTTON_ID) {
-        val request = accountLinkService.getOrCreateLinkRequest(interaction.user)
-        logger.info { "Requesting link code for user ${interaction.user.tag} (${interaction.user.id}): ${request.code}" }
-        interaction.respondEphemeral {
-            content = """
-                コードは以下の通りです。
-                ```
-                ${request.code}
-                ```
-            """.trimIndent()
+        when (val request = accountLinkService.getOrCreateLinkRequest(interaction.user)) {
+            is LinkRequestResult.Success -> {
+                logger.debug { "Requesting link code for user ${interaction.user.tag} (${interaction.user.id})" }
+                interaction.respondEphemeral {
+                    content = """
+                        コードは以下の通りです。
+                        ```
+                        ${request.code}
+                        ```
+                    """.trimIndent()
+                }
+            }
+
+            LinkRequestResult.Blocked -> interaction.respondEphemeral {
+                content = "この Discordアカウントはブロックされているため、紐付けを開始できません。"
+            }
         }
     }
 

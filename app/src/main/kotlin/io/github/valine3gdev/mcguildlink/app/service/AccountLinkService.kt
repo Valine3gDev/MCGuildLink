@@ -1,13 +1,14 @@
 package io.github.valine3gdev.mcguildlink.app.service
 
-import io.github.valine3gdev.mcguildlink.app.db.*
+import io.github.valine3gdev.mcguildlink.app.db.AccountLinkEntity
+import io.github.valine3gdev.mcguildlink.app.db.LinkRequestEntity
+import io.github.valine3gdev.mcguildlink.app.db.LinkRequests
 import io.github.valine3gdev.mcguildlink.app.service.dto.DiscordAccountInfo
 import io.github.valine3gdev.mcguildlink.app.service.dto.LinkRequestResult
 import io.github.valine3gdev.mcguildlink.app.service.dto.LinkResult
 import io.github.valine3gdev.mcguildlink.app.service.dto.MinecraftAccountInfo
 import io.github.valine3gdev.mcguildlink.app.util.LinkCodeGenerator
 import io.github.valine3gdev.mcguildlink.app.util.RandomLinkCodeGenerator
-import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
@@ -20,25 +21,10 @@ class AccountLinkService(
     private val db: Database,
     private val codeGenerator: LinkCodeGenerator = RandomLinkCodeGenerator()
 ) {
-    private fun getDiscordAccountOrNull(userId: ULong) = DiscordAccountEntity.find {
-        DiscordAccounts.userId eq userId
-    }.firstOrNull()
-
-    private fun getMinecraftAccountOrNull(uuid: Uuid) = MinecraftAccountEntity.find {
-        MinecraftAccounts.uuid eq uuid
-    }.firstOrNull()
-
-    private fun getAccountLinkOrNull(discord: DiscordAccountEntity, minecraft: MinecraftAccountEntity) =
-        AccountLinkEntity.find {
-            (AccountLinks.discordAccount eq discord.id) and (AccountLinks.minecraftAccount eq minecraft.id)
-        }.firstOrNull()
-
     suspend fun getOrCreateLinkRequest(discordUserId: ULong, username: String) = suspendTransaction(db) {
-        val discord = getDiscordAccountOrNull(discordUserId)?.apply {
-            lastKnownUsername = username
-        } ?: DiscordAccountEntity.new {
-            this.userId = discordUserId
-            this.lastKnownUsername = username
+        val discord = AccountStore.getOrCreateDiscordAccount(discordUserId, username)
+        if (discord.isBlocked()) {
+            return@suspendTransaction LinkRequestResult.Blocked
         }
 
         val request = discord.linkRequest ?: LinkRequestEntity.new {
@@ -46,7 +32,7 @@ class AccountLinkService(
             code = generateUniqueCode()
         }
 
-        LinkRequestResult(request.code)
+        LinkRequestResult.Success(request.code)
     }
 
     fun consumeCodeAndLink(code: String, uuid: Uuid, name: String) = transaction(db) {
@@ -55,15 +41,16 @@ class AccountLinkService(
         }.firstOrNull() ?: return@transaction LinkResult.InvalidCode
 
         val discord = request.discordAccount
-
-        val minecraft = getMinecraftAccountOrNull(uuid)?.apply {
-            lastKnownName = name
-        } ?: MinecraftAccountEntity.new {
-            this.uuid = uuid
-            lastKnownName = name
+        if (discord.isBlocked()) {
+            return@transaction LinkResult.Blocked
         }
 
-        getAccountLinkOrNull(discord, minecraft)
+        val minecraft = AccountStore.getOrCreateMinecraftAccount(uuid, name)
+        if (minecraft.isBlocked()) {
+            return@transaction LinkResult.Blocked
+        }
+
+        AccountStore.getAccountLinkOrNull(discord, minecraft)
             ?.let {
                 return@transaction LinkResult.AlreadyLinked
             }
@@ -79,7 +66,7 @@ class AccountLinkService(
     }
 
     suspend fun getLinkedMinecraftAccounts(userId: ULong): List<MinecraftAccountInfo> = suspendTransaction(db) {
-        val discord = getDiscordAccountOrNull(userId) ?: return@suspendTransaction emptyList()
+        val discord = AccountStore.getDiscordAccountOrNull(userId) ?: return@suspendTransaction emptyList()
         discord.links.map { link ->
             val mc = link.minecraftAccount
             MinecraftAccountInfo(mc.uuid, mc.lastKnownName)
@@ -87,7 +74,7 @@ class AccountLinkService(
     }
 
     suspend fun getLinkedDiscordAccounts(uuid: Uuid): List<DiscordAccountInfo> = suspendTransaction(db) {
-        val minecraft = getMinecraftAccountOrNull(uuid) ?: return@suspendTransaction emptyList()
+        val minecraft = AccountStore.getMinecraftAccountOrNull(uuid) ?: return@suspendTransaction emptyList()
         minecraft.links.map { link ->
             val dc = link.discordAccount
             DiscordAccountInfo(dc.userId, dc.lastKnownUsername)
@@ -95,8 +82,9 @@ class AccountLinkService(
     }
 
     suspend fun getLinkOrNull(discordUserId: ULong, minecraftUuid: Uuid) = suspendTransaction(db) {
-        val discord = getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction null
-        val minecraft = getMinecraftAccountOrNull(minecraftUuid) ?: return@suspendTransaction null
+        val link = AccountStore.getAccountLinkOrNull(discordUserId, minecraftUuid) ?: return@suspendTransaction null
+        val discord = link.discordAccount
+        val minecraft = link.minecraftAccount
         Pair(
             DiscordAccountInfo(discord.userId, discord.lastKnownUsername),
             MinecraftAccountInfo(minecraft.uuid, minecraft.lastKnownName)
@@ -104,15 +92,13 @@ class AccountLinkService(
     }
 
     suspend fun unlink(discordUserId: ULong, minecraftUuid: Uuid) = suspendTransaction(db) {
-        val discord = getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction false
-        val minecraft = getMinecraftAccountOrNull(minecraftUuid) ?: return@suspendTransaction false
-        val link = getAccountLinkOrNull(discord, minecraft) ?: return@suspendTransaction false
+        val link = AccountStore.getAccountLinkOrNull(discordUserId, minecraftUuid) ?: return@suspendTransaction false
         link.delete()
         true
     }
 
     suspend fun unlinkByDiscord(discordUserId: ULong) = suspendTransaction(db) {
-        val discord = getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction false
+        val discord = AccountStore.getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction false
         discord.links.forEach { it.delete() }
     }
 

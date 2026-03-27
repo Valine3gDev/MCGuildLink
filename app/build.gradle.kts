@@ -43,7 +43,8 @@ tasks {
             "-XX:+AllowEnhancedClassRedefinition",
             "-Dfile.encoding=UTF-8",
             "-Dstdout.encoding=UTF-8",
-            "-Dstderr.encoding=UTF-8"
+            "-Dstderr.encoding=UTF-8",
+            "-Dorg.slf4j.simpleLogger.defaultLogLevel=debug"
         )
     }
     withType<Test>().configureEach {
