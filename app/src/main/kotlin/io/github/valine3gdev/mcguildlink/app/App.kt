@@ -7,6 +7,9 @@ import io.github.valine3gdev.mcguildlink.app.minecraft.MinecraftServer
 import io.github.valine3gdev.mcguildlink.app.service.AccountBlockService
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import io.github.valine3gdev.mcguildlink.app.service.WhitelistFileSyncService
+import io.github.valine3gdev.mcguildlink.app.web.configureWhitelistRouting
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
@@ -43,13 +46,25 @@ class App(
         accountLinkService = accountLinkService,
     )
 
-    suspend fun start() = coroutineScope {
+    private val webServer = embeddedServer(Netty, host = config.web.address, port = config.web.port) {
+        configureWhitelistRouting(paths.whitelistFile)
+    }
+
+    suspend fun start() {
         whitelistFileSyncService.generateNow()
-        whitelistFileSyncService.attach(this)
+        webServer.start(wait = false)
 
-        minecraftServer.start()
+        try {
+            coroutineScope {
+                whitelistFileSyncService.attach(this)
 
-        launch { bot.start() }
+                minecraftServer.start()
+
+                launch { bot.start() }
+            }
+        } finally {
+            webServer.stop()
+        }
     }
 }
 

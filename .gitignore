@@ -46,3 +46,5 @@ bin/
 /app/config/app.toml
 /app/data/*
 /app/static/*
+
+.gradle-user-home

@@ -13,6 +13,7 @@ dependencies {
     runtimeOnly(libs.slf4j.simple)
 
     testImplementation(kotlin("test"))
+    testImplementation(libs.ktor.server.test.host)
 }
 
 kotlin {

@@ -16,6 +16,8 @@ data class Config(
 
     @SerialName("minecraft_server")
     val minecraftServer: MinecraftServerConfig,
+
+    val web: WebConfig,
 ) {
     companion object {
         fun load(path: Path) = Toml.decodeFromString<Config>(path.readText())
@@ -39,4 +41,11 @@ data class MinecraftServerConfig(
     val address: String,
     val port: Int,
     val timeout: Duration,
+)
+
+
+@Serializable
+data class WebConfig(
+    val address: String,
+    val port: Int,
 )
