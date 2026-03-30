@@ -9,6 +9,7 @@ import io.github.valine3gdev.mcguildlink.app.discord.registry.EphemeralPaginatio
 import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
 import io.github.valine3gdev.mcguildlink.app.discord.registry.PaginationSnapshotPage
 import io.github.valine3gdev.mcguildlink.app.service.dto.AccountLinkSummary
+import io.github.valine3gdev.mcguildlink.app.service.dto.toHeadAvatarUrl
 
 
 private val discordAccountLinksPagination = createAccountLinksPagination(
@@ -96,7 +97,7 @@ private fun ContainerBuilder.applyAccountLinksPage(
                 """.trimIndent()
             )
             thumbnailAccessory {
-                url = "https://mc-heads.net/avatar/${link.minecraftAccount.uuid}"
+                url = link.minecraftAccount.toHeadAvatarUrl()
             }
         }
     }

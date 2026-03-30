@@ -65,3 +65,5 @@ data class MinecraftAccountInfo(
     val uuid: Uuid,
     val lastKnownName: String,
 )
+
+fun MinecraftAccountInfo.toHeadAvatarUrl() = "https://mc-heads.net/avatar/$uuid"

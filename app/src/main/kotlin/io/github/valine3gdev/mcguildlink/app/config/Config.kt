@@ -33,6 +33,9 @@ data class BotConfig(
 
     @SerialName("moderator_role")
     val moderatorRole: Snowflake,
+
+    @SerialName("log_channel")
+    val logChannel: Snowflake,
 )
 
 

@@ -21,6 +21,7 @@ import io.github.valine3gdev.mcguildlink.app.discord.registry.createLinkedCustom
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import io.github.valine3gdev.mcguildlink.app.service.dto.LinkRequestResult
 import io.github.valine3gdev.mcguildlink.app.service.dto.MinecraftAccountInfo
+import io.github.valine3gdev.mcguildlink.app.service.dto.toHeadAvatarUrl
 import io.github.valine3gdev.mcguildlink.app.util.getLinkedMinecraftAccounts
 import io.github.valine3gdev.mcguildlink.app.util.getOrCreateLinkRequest
 
@@ -100,11 +101,11 @@ private fun ContainerBuilder.appendMinecraftAccount(user: User, minecraft: Minec
         textDisplay(
             """
                 - 名前: **${minecraft.lastKnownName}**
-                - UUID: `$uuid`
+                - UUID: `${minecraft.uuid}`
             """.trimIndent()
         )
         thumbnailAccessory {
-            url = "https://mc-heads.net/avatar/$uuid"
+            url = minecraft.toHeadAvatarUrl()
         }
     }
 

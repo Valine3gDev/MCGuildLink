@@ -9,12 +9,13 @@ import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.in
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.installAccountLinksPagination
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.installBlockAccountPagination
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.installUnlinkHandlers
+import io.github.valine3gdev.mcguildlink.app.discord.logging.AuditLogSender
 import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
 import io.github.valine3gdev.mcguildlink.app.service.AccountBlockService
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 
 
-context(accountLinkService: AccountLinkService, accountBlockService: AccountBlockService)
+context(accountLinkService: AccountLinkService, accountBlockService: AccountBlockService, auditLogSender: AuditLogSender)
 fun installAccountLinkHandlers(
     kord: Kord,
     interactions: InteractionRegistry,

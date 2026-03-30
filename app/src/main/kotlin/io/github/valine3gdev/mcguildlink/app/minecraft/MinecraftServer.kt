@@ -2,8 +2,11 @@ package io.github.valine3gdev.mcguildlink.app.minecraft
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.valine3gdev.mcguildlink.app.config.MinecraftServerConfig
+import io.github.valine3gdev.mcguildlink.app.discord.logging.AuditLogSender
+import io.github.valine3gdev.mcguildlink.app.discord.logging.sendLinkSucceeded
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import io.github.valine3gdev.mcguildlink.app.service.dto.LinkResult
+import io.github.valine3gdev.mcguildlink.app.service.dto.MinecraftAccountInfo
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.nbt.CompoundBinaryTag
 import net.kyori.adventure.text.Component
@@ -28,6 +31,7 @@ private val logger = KotlinLogging.logger {}
 class MinecraftServer(
     private val config: MinecraftServerConfig,
     private val accountLinkService: AccountLinkService,
+    private val auditLogSender: AuditLogSender,
 ) {
     companion object {
         private val CODE_SUBMIT_KEY = Key.key("mcguildlink:submit_code")
@@ -126,10 +130,14 @@ class MinecraftServer(
 
                     is LinkResult.AlreadyLinked -> showAlreadyLinkedDialog(player)
 
-                    LinkResult.Blocked -> showBlockedDialog(player)
+                    is LinkResult.Blocked -> showBlockedDialog(player)
 
                     is LinkResult.Success -> {
                         logger.info { "Player $username ($uuid) completed authentication successfully, linked with Discord user ${result.discordAccount.lastKnownUsername} (${result.discordAccount.userId})." }
+                        auditLogSender.sendLinkSucceeded(
+                            result.discordAccount,
+                            MinecraftAccountInfo(uuid.toKotlinUuid(), username)
+                        )
                         showSuccessDialog(player, result.discordAccount.lastKnownUsername)
                     }
                 }
