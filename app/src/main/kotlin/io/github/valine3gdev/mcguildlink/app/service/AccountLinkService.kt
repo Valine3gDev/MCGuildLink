@@ -15,6 +15,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.time.Instant
+import kotlin.collections.forEach
 import kotlin.uuid.Uuid
 
 
@@ -39,33 +40,33 @@ class AccountLinkService(
 
     fun consumeCodeAndLink(code: String, uuid: Uuid, name: String): LinkResult {
         val result = transaction(db) {
-        val request = LinkRequestEntity.find {
-            LinkRequests.code eq code
-        }.firstOrNull() ?: return@transaction LinkResult.InvalidCode
+            val request = LinkRequestEntity.find {
+                LinkRequests.code eq code
+            }.firstOrNull() ?: return@transaction LinkResult.InvalidCode
 
-        val discord = request.discordAccount
-        if (discord.isBlocked()) {
-            return@transaction LinkResult.Blocked
-        }
-
-        val minecraft = AccountStore.getOrCreateMinecraftAccount(uuid, name)
-        if (minecraft.isBlocked()) {
-            return@transaction LinkResult.Blocked
-        }
-
-        AccountStore.getAccountLinkOrNull(discord, minecraft)
-            ?.let {
-                return@transaction LinkResult.AlreadyLinked
-            }
-            ?: AccountLinkEntity.new {
-                discordAccount = discord
-                minecraftAccount = minecraft
-                linkedAt = Instant.now()
+            val discord = request.discordAccount
+            if (discord.isBlocked()) {
+                return@transaction LinkResult.Blocked
             }
 
-        request.delete()
+            val minecraft = AccountStore.getOrCreateMinecraftAccount(uuid, name)
+            if (minecraft.isBlocked()) {
+                return@transaction LinkResult.Blocked
+            }
 
-        LinkResult.Success(DiscordAccountInfo(discord.userId, discord.lastKnownUsername))
+            AccountStore.getAccountLinkOrNull(discord, minecraft)
+                ?.let {
+                    return@transaction LinkResult.AlreadyLinked
+                }
+                ?: AccountLinkEntity.new {
+                    discordAccount = discord
+                    minecraftAccount = minecraft
+                    linkedAt = Instant.now()
+                }
+
+            request.delete()
+
+            LinkResult.Success(DiscordAccountInfo(discord.userId, discord.lastKnownUsername))
         }
 
         if (result is LinkResult.Success) {
@@ -123,7 +124,8 @@ class AccountLinkService(
 
     suspend fun unlink(discordUserId: ULong, minecraftUuid: Uuid): Boolean {
         val removed = suspendTransaction(db) {
-            val link = AccountStore.getAccountLinkOrNull(discordUserId, minecraftUuid) ?: return@suspendTransaction false
+            val link =
+                AccountStore.getAccountLinkOrNull(discordUserId, minecraftUuid) ?: return@suspendTransaction false
             link.delete()
             true
         }
@@ -135,24 +137,23 @@ class AccountLinkService(
         return removed
     }
 
-    suspend fun unlinkByDiscord(discordUserId: ULong): Boolean {
-        val removed = suspendTransaction(db) {
-            val discord = AccountStore.getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction false
-            val links = discord.links.toList()
-            if (links.isEmpty()) {
-                return@suspendTransaction false
+    suspend fun unlinkByDiscord(discordUserId: ULong): List<MinecraftAccountInfo> = suspendTransaction(db) {
+        val discord = AccountStore.getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction null
+        val links = discord.links.toList()
+        if (links.isEmpty()) {
+            return@suspendTransaction null
+        }
+
+        buildList<MinecraftAccountInfo>(links.size) {
+            links.forEach { link ->
+                val mc = link.minecraftAccount
+                add(MinecraftAccountInfo(mc.uuid, mc.lastKnownName))
+                link.delete()
             }
-
-            links.forEach { it.delete() }
-            true
         }
-
-        if (removed) {
-            whitelistRefreshRequester.requestRefresh()
-        }
-
-        return removed
-    }
+    }?.also {
+        whitelistRefreshRequester.requestRefresh()
+    } ?: emptyList()
 
     private fun generateUniqueCode(): String {
         repeat(20) {

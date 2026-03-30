@@ -12,7 +12,6 @@ import io.github.valine3gdev.mcguildlink.app.service.AccountBlockService
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import io.github.valine3gdev.mcguildlink.app.service.dto.BlockResult
 import io.github.valine3gdev.mcguildlink.app.util.blockDiscordAccount
-import io.github.valine3gdev.mcguildlink.app.util.getLinkedMinecraftAccounts
 import io.github.valine3gdev.mcguildlink.app.util.unlinkByDiscord
 
 
@@ -21,13 +20,8 @@ private val logger = KotlinLogging.logger {}
 context(accountLinkService: AccountLinkService, accountBlockService: AccountBlockService, auditLogSender: AuditLogSender)
 internal fun Kord.installAccountLinkMemberLeaveHandler() {
     on<MemberLeaveEvent> {
-        val linkedMinecraftAccounts = accountLinkService.getLinkedMinecraftAccounts(user)
+        val linkedMinecraftAccounts = accountLinkService.unlinkByDiscord(user)
         if (linkedMinecraftAccounts.isEmpty()) {
-            return@on
-        }
-
-        val removed = accountLinkService.unlinkByDiscord(user)
-        if (!removed) {
             return@on
         }
 

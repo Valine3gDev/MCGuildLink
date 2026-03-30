@@ -194,8 +194,11 @@ class AccountLinkServiceTest {
             service.getLinkedMinecraftAccounts(1u).map { it.uuid }
         )
 
-        assertTrue(service.unlinkByDiscord(1u))
-        assertFalse(service.unlinkByDiscord(1u))
+        assertEquals(
+            listOf(MinecraftAccountInfo(secondMinecraftUuid, "Alex")),
+            service.unlinkByDiscord(1u)
+        )
+        assertTrue(service.unlinkByDiscord(1u).isEmpty())
         assertTrue(service.getLinkedMinecraftAccounts(1u).isEmpty())
         assertTrue(service.listAllLinks().isEmpty())
 

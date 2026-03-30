@@ -3,6 +3,7 @@ package io.github.valine3gdev.mcguildlink.app.service
 import io.github.valine3gdev.mcguildlink.app.service.dto.BlockResult
 import io.github.valine3gdev.mcguildlink.app.service.dto.LinkRequestResult
 import io.github.valine3gdev.mcguildlink.app.service.dto.LinkResult
+import io.github.valine3gdev.mcguildlink.app.service.dto.MinecraftAccountInfo
 import io.github.valine3gdev.mcguildlink.app.service.dto.UnblockResult
 import io.github.valine3gdev.mcguildlink.app.testutil.CountingWhitelistRefreshRequester
 import io.github.valine3gdev.mcguildlink.app.testutil.createTestDatabase
@@ -54,10 +55,18 @@ class WhitelistRefreshRequesterIntegrationTest {
         )
         assertEquals(3, requester.count)
 
-        assertEquals(true, service.unlinkByDiscord(1u))
+        assertEquals(
+            listOf(
+                MinecraftAccountInfo(
+                    Uuid.parse("00000000-0000-0000-0000-000000000103"),
+                    "AnotherName",
+                )
+            ),
+            service.unlinkByDiscord(1u)
+        )
         assertEquals(4, requester.count)
 
-        assertEquals(false, service.unlinkByDiscord(1u))
+        assertEquals(emptyList(), service.unlinkByDiscord(1u))
         assertEquals(4, requester.count)
     }
 
