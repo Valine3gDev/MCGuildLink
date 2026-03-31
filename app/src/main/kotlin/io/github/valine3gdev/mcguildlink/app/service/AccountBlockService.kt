@@ -18,7 +18,8 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
-import java.time.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 
 /**
@@ -140,7 +141,7 @@ class AccountBlockService(
 
             val blockGroup = BlockGroupEntity.new {
                 rootDiscordAccount = rootDiscord
-                createdAt = Instant.now()
+                createdAt = Clock.System.now()
             }
 
             discordAccounts.forEach { discord ->

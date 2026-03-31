@@ -1,7 +1,7 @@
 package io.github.valine3gdev.mcguildlink.app.db
 
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
-import org.jetbrains.exposed.v1.javatime.timestamp
+import org.jetbrains.exposed.v1.datetime.timestamp
 
 
 /**

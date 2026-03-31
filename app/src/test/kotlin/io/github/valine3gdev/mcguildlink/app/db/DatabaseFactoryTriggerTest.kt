@@ -2,11 +2,11 @@ package io.github.valine3gdev.mcguildlink.app.db
 
 import io.github.valine3gdev.mcguildlink.app.testutil.createTestDatabase
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 

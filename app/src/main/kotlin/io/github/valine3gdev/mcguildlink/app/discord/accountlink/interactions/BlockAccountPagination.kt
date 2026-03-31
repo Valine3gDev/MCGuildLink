@@ -1,14 +1,16 @@
 package io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions
 
+import dev.kord.common.DiscordTimestampStyle
 import dev.kord.common.entity.SeparatorSpacingSize
+import dev.kord.common.toMessageFormat
 import dev.kord.core.entity.interaction.ActionInteraction
 import dev.kord.rest.builder.component.ContainerBuilder
 import dev.kord.rest.builder.component.separator
-import io.github.valine3gdev.mcguildlink.app.discord.util.formatDiscordAccountList
-import io.github.valine3gdev.mcguildlink.app.discord.util.formatMinecraftAccountList
 import io.github.valine3gdev.mcguildlink.app.discord.registry.EphemeralPagination
 import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
 import io.github.valine3gdev.mcguildlink.app.discord.registry.PaginationSnapshotPage
+import io.github.valine3gdev.mcguildlink.app.discord.util.formatDiscordAccountList
+import io.github.valine3gdev.mcguildlink.app.discord.util.formatMinecraftAccountList
 import io.github.valine3gdev.mcguildlink.app.service.dto.BlockedAccountGroupInfo
 
 
@@ -68,7 +70,7 @@ private fun ContainerBuilder.applyBlockedAccountsPage(
                     appendLine(group.formatMinecraftAccountList(indent = "  - "))
                 }
 
-                append("- 作成日時: <t:${group.createdAt.epochSecond}:F>")
+                append("- 作成日時: ${group.createdAt.toMessageFormat(DiscordTimestampStyle.LongDateTime)}")
             }.trimEnd()
         )
     }

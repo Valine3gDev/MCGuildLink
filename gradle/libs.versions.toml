@@ -33,7 +33,7 @@ ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref 
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
-exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
+exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 
 kotlin-logging-jvm = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging" }
@@ -56,7 +56,7 @@ implementation = [
     "exposed-core",
     "exposed-dao",
     "exposed-jdbc",
-    "exposed-java-time",
+    "exposed-kotlin-datetime",
     "sqlite-jdbc",
 
     "kotlin-logging-jvm"

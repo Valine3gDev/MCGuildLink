@@ -1,6 +1,8 @@
 package io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions
 
+import dev.kord.common.DiscordTimestampStyle
 import dev.kord.common.entity.SeparatorSpacingSize
+import dev.kord.common.toMessageFormat
 import dev.kord.core.entity.interaction.ActionInteraction
 import dev.kord.rest.builder.component.ContainerBuilder
 import dev.kord.rest.builder.component.section
@@ -111,7 +113,7 @@ private fun ContainerBuilder.applyAccountLinksPage(
                 """
                     - Discord: ${link.discordAccount}
                     - Minecraft: ${link.minecraftAccount}
-                    - 紐付け日時: <t:${link.linkedAt.epochSecond}:F>
+                    - 紐付け日時: ${link.linkedAt.toMessageFormat(DiscordTimestampStyle.LongDateTime)}
                 """.trimIndent()
             )
             thumbnailAccessory {

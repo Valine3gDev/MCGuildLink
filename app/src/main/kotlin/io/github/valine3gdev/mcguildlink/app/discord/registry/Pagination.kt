@@ -14,10 +14,11 @@ import dev.kord.rest.builder.component.ContainerBuilder
 import dev.kord.rest.builder.component.actionRow
 import dev.kord.rest.builder.message.MessageBuilder
 import dev.kord.rest.builder.message.container
-import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 
 
 /**
@@ -104,7 +105,7 @@ class PaginationSnapshotStore<T>(
             ownerUserId = ownerUserId,
             entries = entries.toList(),
             pageSize = pageSize,
-            expiresAt = Instant.now().plusMillis(ttl.inWholeMilliseconds),
+            expiresAt = Clock.System.now() + ttl,
         )
 
         snapshots[snapshot.id] = snapshot
@@ -136,7 +137,7 @@ class PaginationSnapshotStore<T>(
     /**
      * 有効期限切れスナップショットをストアから除去します。
      */
-    private fun pruneExpired(now: Instant = Instant.now()) {
+    private fun pruneExpired(now: Instant = Clock.System.now()) {
         snapshots.entries.removeIf { it.value.expiresAt.isExpired(now) }
     }
 }
@@ -308,7 +309,7 @@ class EphemeralPagination<T>(
 /**
  * 期限切れかどうかを判定します。
  */
-private fun Instant.isExpired(now: Instant = Instant.now()): Boolean = !isAfter(now)
+private fun Instant.isExpired(now: Instant = Clock.System.now()): Boolean = this <= now
 
 
 /**

@@ -10,13 +10,14 @@ import io.ktor.server.testing.testApplication
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
-import java.time.Instant
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 
 /**
@@ -89,7 +90,7 @@ class WhitelistRoutingTest {
         whitelistFile.writeText(
             """[{"uuid":"00000000-0000-0000-0000-000000000002","name":"NewName"}]"""
         )
-        Files.setLastModifiedTime(whitelistFile, FileTime.from(Instant.parse("2026-03-28T00:00:05Z")))
+        Files.setLastModifiedTime(whitelistFile, FileTime.from(Instant.parse("2026-03-28T00:00:05Z").toJavaInstant()))
 
         val updatedResponse = client.get("/whitelist.json") {
             header(HttpHeaders.IfModifiedSince, initialLastModified)
@@ -129,7 +130,7 @@ class WhitelistRoutingTest {
         val whitelistFile = root.resolve("whitelist.json")
 
         whitelistFile.writeText(content)
-        Files.setLastModifiedTime(whitelistFile, FileTime.from(lastModifiedAt))
+        Files.setLastModifiedTime(whitelistFile, FileTime.from(lastModifiedAt.toJavaInstant()))
 
         return whitelistFile
     }

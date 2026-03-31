@@ -3,19 +3,14 @@ package io.github.valine3gdev.mcguildlink.app.service
 import io.github.valine3gdev.mcguildlink.app.db.AccountLinkEntity
 import io.github.valine3gdev.mcguildlink.app.db.LinkRequestEntity
 import io.github.valine3gdev.mcguildlink.app.db.LinkRequests
-import io.github.valine3gdev.mcguildlink.app.service.dto.AccountLinkSummary
-import io.github.valine3gdev.mcguildlink.app.service.dto.DiscordAccountInfo
-import io.github.valine3gdev.mcguildlink.app.service.dto.LinkRequestResult
-import io.github.valine3gdev.mcguildlink.app.service.dto.LinkResult
-import io.github.valine3gdev.mcguildlink.app.service.dto.MinecraftAccountInfo
+import io.github.valine3gdev.mcguildlink.app.service.dto.*
 import io.github.valine3gdev.mcguildlink.app.util.LinkCodeGenerator
 import io.github.valine3gdev.mcguildlink.app.util.RandomLinkCodeGenerator
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import java.time.Instant
-import kotlin.collections.forEach
+import kotlin.time.Clock
 import kotlin.uuid.Uuid
 
 
@@ -70,7 +65,7 @@ class AccountLinkService(
                 ?: AccountLinkEntity.new {
                     discordAccount = discord
                     minecraftAccount = minecraft
-                    linkedAt = Instant.now()
+                    linkedAt = Clock.System.now()
                 }
 
             request.delete()

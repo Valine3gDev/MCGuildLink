@@ -1,6 +1,6 @@
 package io.github.valine3gdev.mcguildlink.app.service.dto
 
-import java.time.Instant
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 
