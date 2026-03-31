@@ -4,6 +4,8 @@ import dev.kord.common.entity.SeparatorSpacingSize
 import dev.kord.core.entity.interaction.ActionInteraction
 import dev.kord.rest.builder.component.ContainerBuilder
 import dev.kord.rest.builder.component.separator
+import io.github.valine3gdev.mcguildlink.app.discord.util.formatDiscordAccountList
+import io.github.valine3gdev.mcguildlink.app.discord.util.formatMinecraftAccountList
 import io.github.valine3gdev.mcguildlink.app.discord.registry.EphemeralPagination
 import io.github.valine3gdev.mcguildlink.app.discord.registry.InteractionRegistry
 import io.github.valine3gdev.mcguildlink.app.discord.registry.PaginationSnapshotPage
@@ -42,7 +44,7 @@ private fun ContainerBuilder.applyBlockedAccountsPage(
     textDisplay(
         """
             ## ブロックされているアカウント
-            ブロックは root の Discordアカウント単位で表示しています。
+            ブロックは root の Discordアカウント単位で表示しています。root のアカウントには `(root)` を付けています。
             `/block remove` で対象ユーザーを指定すると、そのユーザーが属する block group 全体が解除されます。
         """.trimIndent()
     )
@@ -57,12 +59,17 @@ private fun ContainerBuilder.applyBlockedAccountsPage(
         }
 
         textDisplay(
-            """
-                - root: **${group.rootDiscordAccount.lastKnownUsername}** (`${group.rootDiscordAccount.userId}`)
-                - ブロック中の Discordアカウント数: ${group.blockedDiscordAccounts}
-                - ブロック中の Minecraftアカウント数: ${group.blockedMinecraftAccounts}
-                - 作成日時: <t:${group.createdAt.epochSecond}:f>
-            """.trimIndent()
+            buildString {
+                appendLine("- ブロック中の Discordアカウント")
+                appendLine(group.formatDiscordAccountList(indent = "  - "))
+
+                if (group.blockedMinecraftAccountInfos.isNotEmpty()) {
+                    appendLine("- ブロック中の Minecraftアカウント")
+                    appendLine(group.formatMinecraftAccountList(indent = "  - "))
+                }
+
+                append("- 作成日時: <t:${group.createdAt.epochSecond}:F>")
+            }.trimEnd()
         )
     }
 }

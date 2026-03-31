@@ -5,6 +5,8 @@ import dev.kord.core.Kord
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.rest.builder.interaction.subCommand
 import dev.kord.rest.builder.interaction.user
+import io.github.valine3gdev.mcguildlink.app.discord.util.formatDiscordAccountList
+import io.github.valine3gdev.mcguildlink.app.discord.util.formatMinecraftAccountList
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.interactions.respondBlockedAccountsPaginated
 import io.github.valine3gdev.mcguildlink.app.discord.util.guardUserRole
 import io.github.valine3gdev.mcguildlink.app.discord.util.handleSub
@@ -56,28 +58,20 @@ internal suspend fun Kord.installBlockAccountCommand(guildId: Snowflake, moderat
         when (val result = accountBlockService.blockDiscordAccount(target)) {
             is BlockResult.Success -> interaction.respondEphemeral {
                 content = buildString {
-                    appendLine("Discordアカウントをブロックしました。")
+                    appendLine(
+                        """
+                        Discordアカウントをブロックしました。
+                        ブロックした Discordアカウント:
+                        ${result.blockGroup.formatDiscordAccountList()}
+                        """.trimIndent()
+                    )
 
-                    if (result.blockedDiscordAccountInfos.isNotEmpty()) {
-                        appendLine()
-                        appendLine(
-                            """
-                            ブロックした Discordアカウント:
-                            ${result.blockedDiscordAccountInfos.joinToString("\n") {
-                                "- **${it.lastKnownUsername}** (`${it.userId}`)"
-                            }}
-                            """.trimIndent()
-                        )
-                    }
-
-                    if (result.blockedMinecraftAccountInfos.isNotEmpty()) {
+                    if (result.blockGroup.blockedMinecraftAccountInfos.isNotEmpty()) {
                         appendLine()
                         appendLine(
                             """
                             ブロックした Minecraftアカウント:
-                            ${result.blockedMinecraftAccountInfos.joinToString("\n") {
-                                "- **${it.lastKnownName}** (`${it.uuid}`)"
-                            }}
+                            ${result.blockGroup.formatMinecraftAccountList()}
                             """.trimIndent()
                         )
                     }
@@ -100,12 +94,24 @@ internal suspend fun Kord.installBlockAccountCommand(guildId: Snowflake, moderat
 
         when (val result = accountBlockService.unblockDiscordAccount(target)) {
             is UnblockResult.Success -> interaction.respondEphemeral {
-                content = """
-                    Discordアカウントのブロックを解除しました。
-                    - 対象 block group: **${result.blockGroup.rootDiscordAccount.lastKnownUsername}** (`${result.blockGroup.rootDiscordAccount.userId}`)
-                    - 解除した Discordアカウント数: ${result.blockGroup.blockedDiscordAccounts}
-                    - 解除した Minecraftアカウント数: ${result.blockGroup.blockedMinecraftAccounts}
-                """.trimIndent()
+                content = buildString {
+                    appendLine(
+                        """
+                        Discordアカウントのブロックを解除しました。
+                        解除した Discordアカウント:
+                        ${result.blockGroup.formatDiscordAccountList()}
+                        """.trimIndent()
+                    )
+
+                    if (result.blockGroup.blockedMinecraftAccountInfos.isNotEmpty()) {
+                        appendLine(
+                            """
+                            解除した Minecraftアカウント:
+                            ${result.blockGroup.formatMinecraftAccountList()}
+                            """.trimIndent()
+                        )
+                    }
+                }
             }
 
             UnblockResult.NotBlocked -> interaction.respondEphemeral {

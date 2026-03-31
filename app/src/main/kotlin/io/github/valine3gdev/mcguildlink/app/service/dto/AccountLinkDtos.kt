@@ -53,12 +53,7 @@ sealed interface BlockResult {
     /**
      * 関連アカウント群のブロックが成功した結果です。
      */
-    data class Success(
-        val rootDiscordAccount: DiscordAccountInfo,
-        val blockedDiscordAccountInfos: List<DiscordAccountInfo>,
-        val blockedMinecraftAccountInfos: List<MinecraftAccountInfo>,
-    ) : BlockResult
-
+    data class Success(val blockGroup: BlockedAccountGroupInfo) : BlockResult
     /**
      * 対象アカウント群がすでにブロック済みである結果です。
      */
@@ -83,14 +78,20 @@ sealed interface UnblockResult {
 
 
 /**
- * ブロックグループの概要情報です。
+ * ブロックグループの表示用情報です。
  */
 data class BlockedAccountGroupInfo(
     val rootDiscordAccount: DiscordAccountInfo,
-    val blockedDiscordAccounts: Int,
-    val blockedMinecraftAccounts: Int,
+    val blockedDiscordAccountInfos: List<DiscordAccountInfo>,
+    val blockedMinecraftAccountInfos: List<MinecraftAccountInfo>,
     val createdAt: Instant,
-)
+) {
+    val blockedDiscordAccounts: Int
+        get() = blockedDiscordAccountInfos.size
+
+    val blockedMinecraftAccounts: Int
+        get() = blockedMinecraftAccountInfos.size
+}
 
 
 /**
@@ -109,7 +110,9 @@ data class AccountLinkSummary(
 data class DiscordAccountInfo(
     val userId: ULong,
     val lastKnownUsername: String,
-)
+) {
+    override fun toString() = "$lastKnownUsername (`$userId`)"
+}
 
 
 /**
@@ -118,7 +121,9 @@ data class DiscordAccountInfo(
 data class MinecraftAccountInfo(
     val uuid: Uuid,
     val lastKnownName: String,
-)
+) {
+    override fun toString() = "$lastKnownName (`$uuid`)"
+}
 
 /**
  * Minecraft アカウントのヘッド画像 URL を返します。

@@ -13,6 +13,8 @@ import dev.kord.rest.builder.component.separator
 import dev.kord.rest.builder.message.container
 import dev.kord.rest.builder.message.messageFlags
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.valine3gdev.mcguildlink.app.discord.util.formatDiscordAccounts
+import io.github.valine3gdev.mcguildlink.app.discord.util.formatMinecraftAccounts
 import io.github.valine3gdev.mcguildlink.app.service.dto.BlockResult
 import io.github.valine3gdev.mcguildlink.app.service.dto.DiscordAccountInfo
 import io.github.valine3gdev.mcguildlink.app.service.dto.MinecraftAccountInfo
@@ -134,13 +136,12 @@ fun AuditLogSender.sendMemberLeaveUnlinked(leftUser: User, minecraftAccounts: Li
             divider = false
         }
 
-        val accountListText = minecraftAccounts.joinToString("\n") { "  - ${it.lastKnownName} (`${it.uuid}`)" }
         textDisplay(
             """
             |- Discordユーザー
             |  - ${leftUser.username} (`${leftUser.id}`)
             |- Minecraftアカウント
-            |$accountListText
+            |${minecraftAccounts.formatMinecraftAccounts("  - ")}
             """.trimMargin()
         )
     }
@@ -150,7 +151,7 @@ fun AuditLogSender.sendMemberLeaveUnlinked(leftUser: User, minecraftAccounts: Li
  */
 fun AuditLogSender.sendMemberBannedBlocked(result: BlockResult.Success) =
     sendInfo {
-        val (discordAccount, blockedDiscordAccounts, blockedMinecraftAccounts) = result
+        val (discordAccount, blockedDiscordAccounts, blockedMinecraftAccounts) = result.blockGroup
 
         textDisplay("メンバーのBANを検知したため、関連アカウントを自動ブロックしました。")
 
@@ -163,7 +164,7 @@ fun AuditLogSender.sendMemberBannedBlocked(result: BlockResult.Success) =
                 appendLine(
                     """
                     - BAN対象の Discordユーザー
-                      - ${discordAccount.lastKnownUsername} (`${discordAccount.userId}`)
+                      - $discordAccount)
                     """.trimIndent()
                 )
 
@@ -172,9 +173,7 @@ fun AuditLogSender.sendMemberBannedBlocked(result: BlockResult.Success) =
                     appendLine(
                         """
                         - ブロックした Discordアカウント
-                        ${blockedDiscordAccounts.joinToString("\n") {
-                            "  - ${it.lastKnownUsername} (`${it.userId}`)"
-                        }}
+                        ${blockedDiscordAccounts.formatDiscordAccounts("  - ")}
                         """.trimIndent()
                     )
                 }
@@ -184,9 +183,7 @@ fun AuditLogSender.sendMemberBannedBlocked(result: BlockResult.Success) =
                     appendLine(
                         """
                         - ブロックした Minecraftアカウント
-                        ${blockedMinecraftAccounts.joinToString("\n") {
-                            "  - ${it.lastKnownName} (`${it.uuid}`)"
-                        }}
+                        ${blockedMinecraftAccounts.formatMinecraftAccounts("  - ")}
                         """.trimIndent()
                     )
                 }

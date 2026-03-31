@@ -109,9 +109,9 @@ private fun ContainerBuilder.applyAccountLinksPage(
         section {
             textDisplay(
                 """
-                    - Discord: **${link.discordAccount.lastKnownUsername}** (`${link.discordAccount.userId}`)
-                    - Minecraft: **${link.minecraftAccount.lastKnownName}** (`${link.minecraftAccount.uuid}`)
-                    - 紐付け日時: <t:${link.linkedAt.epochSecond}:f>
+                    - Discord: ${link.discordAccount}
+                    - Minecraft: ${link.minecraftAccount}
+                    - 紐付け日時: <t:${link.linkedAt.epochSecond}:F>
                 """.trimIndent()
             )
             thumbnailAccessory {

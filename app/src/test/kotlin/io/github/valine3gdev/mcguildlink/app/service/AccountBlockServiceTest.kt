@@ -49,20 +49,20 @@ class AccountBlockServiceTest {
             blockService.blockDiscordAccount(1u, "discord-1")
         )
 
-        assertEquals(DiscordAccountInfo(1u, "discord-1"), result.rootDiscordAccount)
+        assertEquals(DiscordAccountInfo(1u, "discord-1"), result.blockGroup.rootDiscordAccount)
         assertEquals(
             listOf(
                 DiscordAccountInfo(1u, "discord-1"),
                 DiscordAccountInfo(2u, "discord-2"),
             ),
-            result.blockedDiscordAccountInfos
+            result.blockGroup.blockedDiscordAccountInfos
         )
         assertEquals(
             listOf(
                 MinecraftAccountInfo(secondaryMinecraftUuid, "Secondary"),
                 MinecraftAccountInfo(sharedMinecraftUuid, "Shared"),
             ),
-            result.blockedMinecraftAccountInfos
+            result.blockGroup.blockedMinecraftAccountInfos
         )
         assertTrue(linkService.getLinkedMinecraftAccounts(1u).isEmpty())
         assertTrue(linkService.getLinkedMinecraftAccounts(2u).isEmpty())
@@ -129,6 +129,20 @@ class AccountBlockServiceTest {
         )
 
         assertEquals(1u, result.blockGroup.rootDiscordAccount.userId)
+        assertEquals(
+            listOf(
+                DiscordAccountInfo(1u, "discord-1"),
+                DiscordAccountInfo(2u, "discord-2"),
+            ),
+            result.blockGroup.blockedDiscordAccountInfos
+        )
+        assertEquals(
+            listOf(
+                MinecraftAccountInfo(secondaryMinecraftUuid, "Secondary"),
+                MinecraftAccountInfo(sharedMinecraftUuid, "Shared"),
+            ),
+            result.blockGroup.blockedMinecraftAccountInfos
+        )
         assertEquals(2, result.blockGroup.blockedDiscordAccounts)
         assertEquals(2, result.blockGroup.blockedMinecraftAccounts)
         assertTrue(blockService.listBlockedDiscordAccountGroups().isEmpty())

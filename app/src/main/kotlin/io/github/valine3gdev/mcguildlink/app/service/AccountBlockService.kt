@@ -39,12 +39,53 @@ class AccountBlockService(
     private fun MinecraftAccountEntity.toInfo() = MinecraftAccountInfo(uuid, lastKnownName)
 
     /**
-     * ブロックグループエンティティを概要 DTO に変換します。
+     * Discord アカウント群を root 先頭・以降 userId 昇順の表示用 DTO に変換します。
      */
-    private fun BlockGroupEntity.toInfo() = BlockedAccountGroupInfo(
-        rootDiscordAccount = rootDiscordAccount.toInfo(),
-        blockedDiscordAccounts = blockedDiscordAccounts.count().toInt(),
-        blockedMinecraftAccounts = blockedMinecraftAccounts.count().toInt(),
+    private fun Iterable<DiscordAccountEntity>.toBlockedDiscordAccountInfos(rootDiscord: DiscordAccountEntity): List<DiscordAccountInfo> =
+        buildList {
+            add(rootDiscord.toInfo())
+            this@toBlockedDiscordAccountInfos.asSequence()
+                .filter { it.id != rootDiscord.id }
+                .sortedBy { it.userId }
+                .mapTo(this) { it.toInfo() }
+        }
+
+    /**
+     * Minecraft アカウント群を表示順つき DTO に変換します。
+     */
+    private fun Iterable<MinecraftAccountEntity>.toBlockedMinecraftAccountInfos(): List<MinecraftAccountInfo> =
+        asSequence()
+            .map { it.toInfo() }
+            .sortedWith(
+                compareBy(
+                    { it.lastKnownName },
+                    { it.uuid.toString() },
+                )
+            )
+            .toList()
+
+    /**
+     * ブロックグループの表示用 DTO を組み立てます。
+     */
+    private fun blockedAccountGroupInfo(
+        rootDiscord: DiscordAccountEntity,
+        blockedDiscordAccounts: Iterable<DiscordAccountEntity>,
+        blockedMinecraftAccounts: Iterable<MinecraftAccountEntity>,
+        createdAt: Instant,
+    ): BlockedAccountGroupInfo = BlockedAccountGroupInfo(
+        rootDiscordAccount = rootDiscord.toInfo(),
+        blockedDiscordAccountInfos = blockedDiscordAccounts.toBlockedDiscordAccountInfos(rootDiscord),
+        blockedMinecraftAccountInfos = blockedMinecraftAccounts.toBlockedMinecraftAccountInfos(),
+        createdAt = createdAt,
+    )
+
+    /**
+     * ブロックグループエンティティを表示用 DTO に変換します。
+     */
+    private fun BlockGroupEntity.toInfo() = blockedAccountGroupInfo(
+        rootDiscord = rootDiscordAccount,
+        blockedDiscordAccounts = blockedDiscordAccounts.map { it.discordAccount },
+        blockedMinecraftAccounts = blockedMinecraftAccounts.map { it.minecraftAccount },
         createdAt = createdAt,
     )
 
@@ -97,23 +138,6 @@ class AccountBlockService(
                 return@suspendTransaction BlockResult.AlreadyBlocked
             }
 
-            val blockedDiscordAccountInfos = buildList(discordAccounts.size) {
-                add(rootDiscord.toInfo())
-                discordAccounts.asSequence()
-                    .filter { it.id != rootDiscord.id }
-                    .sortedBy { it.userId }
-                    .mapTo(this) { it.toInfo() }
-            }
-            val blockedMinecraftAccountInfos = minecraftAccounts.asSequence()
-                .map { it.toInfo() }
-                .sortedWith(
-                    compareBy(
-                        { it.lastKnownName },
-                        { it.uuid.toString() },
-                    )
-                )
-                .toList()
-
             val blockGroup = BlockGroupEntity.new {
                 rootDiscordAccount = rootDiscord
                 createdAt = Instant.now()
@@ -158,9 +182,12 @@ class AccountBlockService(
             }
 
             BlockResult.Success(
-                rootDiscordAccount = rootDiscord.toInfo(),
-                blockedDiscordAccountInfos = blockedDiscordAccountInfos,
-                blockedMinecraftAccountInfos = blockedMinecraftAccountInfos,
+                blockedAccountGroupInfo(
+                    rootDiscord = rootDiscord,
+                    blockedDiscordAccounts = discordAccounts,
+                    blockedMinecraftAccounts = minecraftAccounts,
+                    createdAt = blockGroup.createdAt,
+                )
             )
         }
 
