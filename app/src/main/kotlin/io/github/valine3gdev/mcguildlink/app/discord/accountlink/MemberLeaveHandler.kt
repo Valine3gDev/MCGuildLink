@@ -30,8 +30,8 @@ internal fun Kord.installAccountLinkMemberLeaveHandler() {
 
     on<BanAddEvent> {
         logger.info { "User ${user.username} was banned from guild ${this.guildId}." }
-        when (accountBlockService.blockDiscordAccount(user)) {
-            is BlockResult.Success -> auditLogSender.sendMemberBannedBlocked(user)
+        when (val result = accountBlockService.blockDiscordAccount(user)) {
+            is BlockResult.Success -> auditLogSender.sendMemberBannedBlocked(result)
 
             BlockResult.AlreadyBlocked -> Unit
         }

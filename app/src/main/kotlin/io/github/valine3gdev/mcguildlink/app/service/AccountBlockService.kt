@@ -12,6 +12,7 @@ import io.github.valine3gdev.mcguildlink.app.db.MinecraftAccountEntity
 import io.github.valine3gdev.mcguildlink.app.service.dto.BlockedAccountGroupInfo
 import io.github.valine3gdev.mcguildlink.app.service.dto.BlockResult
 import io.github.valine3gdev.mcguildlink.app.service.dto.DiscordAccountInfo
+import io.github.valine3gdev.mcguildlink.app.service.dto.MinecraftAccountInfo
 import io.github.valine3gdev.mcguildlink.app.service.dto.UnblockResult
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.or
@@ -24,11 +25,12 @@ class AccountBlockService(
     private val db: Database,
     private val whitelistRefreshRequester: WhitelistRefreshRequester = NoopWhitelistRefreshRequester,
 ) {
+    private fun DiscordAccountEntity.toInfo() = DiscordAccountInfo(userId, lastKnownUsername)
+
+    private fun MinecraftAccountEntity.toInfo() = MinecraftAccountInfo(uuid, lastKnownName)
+
     private fun BlockGroupEntity.toInfo() = BlockedAccountGroupInfo(
-        rootDiscordAccount = DiscordAccountInfo(
-            userId = rootDiscordAccount.userId,
-            lastKnownUsername = rootDiscordAccount.lastKnownUsername,
-        ),
+        rootDiscordAccount = rootDiscordAccount.toInfo(),
         blockedDiscordAccounts = blockedDiscordAccounts.count().toInt(),
         blockedMinecraftAccounts = blockedMinecraftAccounts.count().toInt(),
         createdAt = createdAt,
@@ -43,20 +45,17 @@ class AccountBlockService(
         while (true) {
             var changed = false
 
-            val discordIds = discordAccounts.mapTo(mutableListOf()) { it.id }
-            val minecraftIds = minecraftAccounts.mapTo(mutableListOf()) { it.id }
-
-            if (discordIds.isNotEmpty()) {
+            if (discordAccounts.isNotEmpty()) {
                 AccountLinkEntity.find {
-                    AccountLinks.discordAccount inList discordIds
+                    AccountLinks.discordAccount inList discordAccounts.map { it.id }
                 }.forEach { link ->
                     changed = minecraftAccounts.add(link.minecraftAccount) || changed
                 }
             }
 
-            if (minecraftIds.isNotEmpty()) {
+            if (minecraftAccounts.isNotEmpty()) {
                 AccountLinkEntity.find {
-                    AccountLinks.minecraftAccount inList minecraftIds
+                    AccountLinks.minecraftAccount inList minecraftAccounts.map { it.id }
                 }.forEach { link ->
                     changed = discordAccounts.add(link.discordAccount) || changed
                 }
@@ -79,6 +78,23 @@ class AccountBlockService(
             if (discordAccounts.any { it.isBlocked() } || minecraftAccounts.any { it.isBlocked() }) {
                 return@suspendTransaction BlockResult.AlreadyBlocked
             }
+
+            val blockedDiscordAccountInfos = buildList(discordAccounts.size) {
+                add(rootDiscord.toInfo())
+                discordAccounts.asSequence()
+                    .filter { it.id != rootDiscord.id }
+                    .sortedBy { it.userId }
+                    .mapTo(this) { it.toInfo() }
+            }
+            val blockedMinecraftAccountInfos = minecraftAccounts.asSequence()
+                .map { it.toInfo() }
+                .sortedWith(
+                    compareBy(
+                        { it.lastKnownName },
+                        { it.uuid.toString() },
+                    )
+                )
+                .toList()
 
             val blockGroup = BlockGroupEntity.new {
                 rootDiscordAccount = rootDiscord
@@ -124,9 +140,9 @@ class AccountBlockService(
             }
 
             BlockResult.Success(
-                rootDiscordAccount = DiscordAccountInfo(rootDiscord.userId, rootDiscord.lastKnownUsername),
-                blockedDiscordAccounts = discordAccounts.size,
-                blockedMinecraftAccounts = minecraftAccounts.size,
+                rootDiscordAccount = rootDiscord.toInfo(),
+                blockedDiscordAccountInfos = blockedDiscordAccountInfos,
+                blockedMinecraftAccountInfos = blockedMinecraftAccountInfos,
             )
         }
 
@@ -139,7 +155,8 @@ class AccountBlockService(
 
     suspend fun unblockDiscordAccount(discordUserId: ULong): UnblockResult {
         val result = suspendTransaction(db) {
-            val discord = AccountStore.getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction UnblockResult.NotBlocked
+            val discord = AccountStore.getDiscordAccountOrNull(discordUserId)
+                ?: return@suspendTransaction UnblockResult.NotBlocked
             val blockGroup = discord.blockedMembership?.blockGroup ?: return@suspendTransaction UnblockResult.NotBlocked
             val blockGroupInfo = blockGroup.toInfo()
 

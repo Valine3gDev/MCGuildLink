@@ -52,12 +52,33 @@ internal suspend fun Kord.installBlockAccountCommand(guildId: Snowflake, moderat
 
         when (val result = accountBlockService.blockDiscordAccount(target)) {
             is BlockResult.Success -> interaction.respondEphemeral {
-                content = """
-                    Discordアカウントをブロックしました。
-                    - 対象: **${result.rootDiscordAccount.lastKnownUsername}** (`${result.rootDiscordAccount.userId}`)
-                    - ブロックした Discordアカウント数: ${result.blockedDiscordAccounts}
-                    - ブロックした Minecraftアカウント数: ${result.blockedMinecraftAccounts}
-                """.trimIndent()
+                content = buildString {
+                    appendLine("Discordアカウントをブロックしました。")
+
+                    if (result.blockedDiscordAccountInfos.isNotEmpty()) {
+                        appendLine()
+                        appendLine(
+                            """
+                            ブロックした Discordアカウント:
+                            ${result.blockedDiscordAccountInfos.joinToString("\n") {
+                                "- **${it.lastKnownUsername}** (`${it.userId}`)"
+                            }}
+                            """.trimIndent()
+                        )
+                    }
+
+                    if (result.blockedMinecraftAccountInfos.isNotEmpty()) {
+                        appendLine()
+                        appendLine(
+                            """
+                            ブロックした Minecraftアカウント:
+                            ${result.blockedMinecraftAccountInfos.joinToString("\n") {
+                                "- **${it.lastKnownName}** (`${it.uuid}`)"
+                            }}
+                            """.trimIndent()
+                        )
+                    }
+                }.trimEnd()
             }
 
             BlockResult.AlreadyBlocked -> interaction.respondEphemeral {

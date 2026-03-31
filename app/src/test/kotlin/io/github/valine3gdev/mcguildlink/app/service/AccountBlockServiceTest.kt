@@ -44,8 +44,20 @@ class AccountBlockServiceTest {
         )
 
         assertEquals(DiscordAccountInfo(1u, "discord-1"), result.rootDiscordAccount)
-        assertEquals(2, result.blockedDiscordAccounts)
-        assertEquals(2, result.blockedMinecraftAccounts)
+        assertEquals(
+            listOf(
+                DiscordAccountInfo(1u, "discord-1"),
+                DiscordAccountInfo(2u, "discord-2"),
+            ),
+            result.blockedDiscordAccountInfos
+        )
+        assertEquals(
+            listOf(
+                MinecraftAccountInfo(secondaryMinecraftUuid, "Secondary"),
+                MinecraftAccountInfo(sharedMinecraftUuid, "Shared"),
+            ),
+            result.blockedMinecraftAccountInfos
+        )
         assertTrue(linkService.getLinkedMinecraftAccounts(1u).isEmpty())
         assertTrue(linkService.getLinkedMinecraftAccounts(2u).isEmpty())
         assertEquals(

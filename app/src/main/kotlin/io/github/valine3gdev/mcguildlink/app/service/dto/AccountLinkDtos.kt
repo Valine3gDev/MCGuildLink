@@ -25,8 +25,8 @@ sealed interface LinkResult {
 sealed interface BlockResult {
     data class Success(
         val rootDiscordAccount: DiscordAccountInfo,
-        val blockedDiscordAccounts: Int,
-        val blockedMinecraftAccounts: Int,
+        val blockedDiscordAccountInfos: List<DiscordAccountInfo>,
+        val blockedMinecraftAccountInfos: List<MinecraftAccountInfo>,
     ) : BlockResult
 
     data object AlreadyBlocked : BlockResult
