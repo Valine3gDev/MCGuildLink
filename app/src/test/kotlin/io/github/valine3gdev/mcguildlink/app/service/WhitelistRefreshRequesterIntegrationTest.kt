@@ -14,7 +14,13 @@ import kotlin.test.assertIs
 import kotlin.uuid.Uuid
 
 
+/**
+ * ホワイトリスト再生成通知が成功時のみ発火することをサービス横断で検証します。
+ */
 class WhitelistRefreshRequesterIntegrationTest {
+    /**
+     * [AccountLinkService] が実際に状態変更したときだけ再生成要求を送ることを検証します。
+     */
     @Test
     fun `account link service requests refresh only for successful link changes`() = runBlocking {
         val requester = CountingWhitelistRefreshRequester()
@@ -70,6 +76,9 @@ class WhitelistRefreshRequesterIntegrationTest {
         assertEquals(4, requester.count)
     }
 
+    /**
+     * [AccountBlockService] がブロック成功時のみ再生成要求を送り、解除では送らないことを検証します。
+     */
     @Test
     fun `account block service requests refresh only for successful block changes`() = runBlocking {
         val requester = CountingWhitelistRefreshRequester()

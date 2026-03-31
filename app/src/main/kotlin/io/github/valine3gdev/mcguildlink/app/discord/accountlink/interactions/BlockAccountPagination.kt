@@ -16,10 +16,16 @@ private val blockedAccountsPagination = EphemeralPagination(
     renderPage = { _, page -> applyBlockedAccountsPage(page) },
 )
 
+/**
+ * ブロック済みアカウント一覧のページ送りボタンを登録します。
+ */
 internal fun InteractionRegistry.installBlockAccountPagination() {
     blockedAccountsPagination.installPaginationButton()
 }
 
+/**
+ * ブロックグループ一覧をエフェメラルページネーションで返信します。
+ */
 internal suspend fun respondBlockedAccountsPaginated(
     interaction: ActionInteraction,
     groups: List<BlockedAccountGroupInfo>,
@@ -27,6 +33,9 @@ internal suspend fun respondBlockedAccountsPaginated(
     blockedAccountsPagination.respondEphemeralPaginatedSnapshot(interaction, groups)
 }
 
+/**
+ * ブロックグループ一覧 1 ページ分の本文を描画します。
+ */
 private fun ContainerBuilder.applyBlockedAccountsPage(
     page: PaginationSnapshotPage<BlockedAccountGroupInfo>,
 ) {

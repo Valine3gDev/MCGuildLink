@@ -18,6 +18,9 @@ import kotlin.uuid.Uuid
 private const val USER_OPTION_KEY = "user"
 private const val UUID_OPTION_KEY = "uuid"
 
+/**
+ * 紐付け済みアカウント一覧を検索・表示する管理者向けコマンドを登録します。
+ */
 context(accountLinkService: AccountLinkService)
 internal suspend fun Kord.installListLinksCommand(guildId: Snowflake, moderatorRole: Snowflake) {
     createGuildChatInputCommand(

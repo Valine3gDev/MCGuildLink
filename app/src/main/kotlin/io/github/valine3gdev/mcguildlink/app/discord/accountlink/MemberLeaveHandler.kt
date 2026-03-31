@@ -17,6 +17,9 @@ import io.github.valine3gdev.mcguildlink.app.util.unlinkByDiscord
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * メンバー退出時の自動解除と BAN 時の自動ブロック処理を登録します。
+ */
 context(accountLinkService: AccountLinkService, accountBlockService: AccountBlockService, auditLogSender: AuditLogSender)
 internal fun Kord.installAccountLinkMemberLeaveHandler() {
     on<MemberLeaveEvent> {

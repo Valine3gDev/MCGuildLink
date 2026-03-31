@@ -20,6 +20,9 @@ import kotlinx.coroutines.flow.collect
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * Discord Bot のイベント購読、コマンド登録、ログイン処理をまとめる起動クラスです。
+ */
 class Bot(
     private val kord: Kord,
     private val guildId: Snowflake,
@@ -28,6 +31,9 @@ class Bot(
     private val accountBlockService: AccountBlockService,
     private val auditLogSender: AuditLogSender,
 ) {
+    /**
+     * インタラクションハンドラを登録し、必要な Gateway Intent を有効化して Bot を起動します。
+     */
     suspend fun start() {
         val interactions = InteractionRegistry(kord)
         context(accountLinkService, accountBlockService) {

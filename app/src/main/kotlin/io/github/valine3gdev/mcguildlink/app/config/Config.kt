@@ -10,6 +10,9 @@ import kotlin.io.path.readText
 import kotlin.time.Duration
 
 
+/**
+ * アプリケーション全体の TOML 設定を表します。
+ */
 @Serializable
 data class Config(
     val bot: BotConfig,
@@ -20,12 +23,18 @@ data class Config(
     val web: WebConfig,
 ) {
     companion object {
+        /**
+         * 指定した TOML ファイルを読み込み、[Config] として復元します。
+         */
         fun load(path: Path) = Toml.decodeFromString<Config>(path.readText())
 
     }
 }
 
 
+/**
+ * Discord Bot の接続先と権限関連設定です。
+ */
 @Serializable
 data class BotConfig(
     val token: String,
@@ -39,6 +48,9 @@ data class BotConfig(
 )
 
 
+/**
+ * Minestom ベースの Minecraft サーバー設定です。
+ */
 @Serializable
 data class MinecraftServerConfig(
     val address: String,
@@ -47,6 +59,9 @@ data class MinecraftServerConfig(
 )
 
 
+/**
+ * ホワイトリスト配信用 Web サーバー設定です。
+ */
 @Serializable
 data class WebConfig(
     val address: String,

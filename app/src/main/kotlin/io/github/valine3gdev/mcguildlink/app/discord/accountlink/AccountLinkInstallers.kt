@@ -15,6 +15,9 @@ import io.github.valine3gdev.mcguildlink.app.service.AccountBlockService
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 
 
+/**
+ * アカウント紐付け機能で使用するインタラクションハンドラとイベントハンドラを登録します。
+ */
 context(accountLinkService: AccountLinkService, accountBlockService: AccountBlockService, auditLogSender: AuditLogSender)
 fun installAccountLinkHandlers(
     kord: Kord,
@@ -32,6 +35,9 @@ fun installAccountLinkHandlers(
     }
 }
 
+/**
+ * アカウント紐付け機能で使用するギルドコマンドを登録します。
+ */
 context(accountLinkService: AccountLinkService, accountBlockService: AccountBlockService)
 suspend fun installCommands(kord: Kord, guildId: Snowflake, moderatorRole: Snowflake) {
     with(kord) {

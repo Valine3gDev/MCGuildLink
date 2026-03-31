@@ -21,14 +21,26 @@ import org.jetbrains.exposed.v1.jdbc.transactions.suspendTransaction
 import java.time.Instant
 
 
+/**
+ * Discord アカウントを起点に関連アカウント群のブロックと解除を行うサービスです。
+ */
 class AccountBlockService(
     private val db: Database,
     private val whitelistRefreshRequester: WhitelistRefreshRequester = NoopWhitelistRefreshRequester,
 ) {
+    /**
+     * Discord アカウントエンティティを表示用 DTO に変換します。
+     */
     private fun DiscordAccountEntity.toInfo() = DiscordAccountInfo(userId, lastKnownUsername)
 
+    /**
+     * Minecraft アカウントエンティティを表示用 DTO に変換します。
+     */
     private fun MinecraftAccountEntity.toInfo() = MinecraftAccountInfo(uuid, lastKnownName)
 
+    /**
+     * ブロックグループエンティティを概要 DTO に変換します。
+     */
     private fun BlockGroupEntity.toInfo() = BlockedAccountGroupInfo(
         rootDiscordAccount = rootDiscordAccount.toInfo(),
         blockedDiscordAccounts = blockedDiscordAccounts.count().toInt(),
@@ -36,6 +48,9 @@ class AccountBlockService(
         createdAt = createdAt,
     )
 
+    /**
+     * 指定した Discord アカウントとリンクでつながる Discord/Minecraft アカウント集合を収集します。
+     */
     private fun collectConnectedAccounts(
         rootDiscord: DiscordAccountEntity
     ): Pair<Set<DiscordAccountEntity>, Set<MinecraftAccountEntity>> {
@@ -67,6 +82,9 @@ class AccountBlockService(
         }
     }
 
+    /**
+     * 指定した Discord ユーザーを起点に関連アカウント群をブロックし、既存リンクと発行済みコードを破棄します。
+     */
     suspend fun blockDiscordAccount(discordUserId: ULong, username: String): BlockResult {
         val result = suspendTransaction(db) {
             val rootDiscord = AccountStore.getOrCreateDiscordAccount(discordUserId, username)
@@ -153,6 +171,9 @@ class AccountBlockService(
         return result
     }
 
+    /**
+     * 指定した Discord ユーザーが属するブロックグループ全体を解除します。
+     */
     suspend fun unblockDiscordAccount(discordUserId: ULong): UnblockResult {
         val result = suspendTransaction(db) {
             val discord = AccountStore.getDiscordAccountOrNull(discordUserId)
@@ -170,6 +191,9 @@ class AccountBlockService(
         return result
     }
 
+    /**
+     * 登録済みのブロックグループ一覧を作成日時の降順で返します。
+     */
     suspend fun listBlockedDiscordAccountGroups() = suspendTransaction(db) {
         BlockGroupEntity.all()
             .sortedByDescending { it.createdAt }

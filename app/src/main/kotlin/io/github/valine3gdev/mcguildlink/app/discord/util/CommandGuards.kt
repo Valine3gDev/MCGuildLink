@@ -6,6 +6,9 @@ import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 
 
+/**
+ * コマンド実行に必要な Bot 権限が不足していないか確認し、不足時は実行者へ通知します。
+ */
 suspend fun GuildChatInputCommandInteractionCreateEvent.guardBotPermissions(requiredBotPermissions: Permissions): Boolean {
     if (!interaction.appPermissions.contains(requiredBotPermissions)) {
         val required = requiredBotPermissions - interaction.appPermissions
@@ -20,6 +23,9 @@ suspend fun GuildChatInputCommandInteractionCreateEvent.guardBotPermissions(requ
     return true
 }
 
+/**
+ * 実行ユーザーが指定ロールを持つか確認し、不足時は拒否メッセージを返します。
+ */
 suspend fun GuildChatInputCommandInteractionCreateEvent.guardUserRole(requiredUserRoleId: Snowflake): Boolean {
     if (!interaction.user.roleIds.contains(requiredUserRoleId)) {
         interaction.respondEphemeral {

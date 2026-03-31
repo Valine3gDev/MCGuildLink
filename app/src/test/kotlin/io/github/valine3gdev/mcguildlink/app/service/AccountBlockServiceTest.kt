@@ -22,7 +22,13 @@ import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 
 
+/**
+ * [AccountBlockService] のブロック連鎖、解除、一覧取得を検証します。
+ */
 class AccountBlockServiceTest {
+    /**
+     * 連結成分全体がブロック対象となり、関連リンクとコードも削除されることを検証します。
+     */
     @Test
     fun `blockDiscordAccount blocks connected component and removes related links and requests`() = runBlocking {
         val db = createTestDatabase()
@@ -83,6 +89,9 @@ class AccountBlockServiceTest {
         }
     }
 
+    /**
+     * すでにブロック済みの連結成分に対する再ブロックが `AlreadyBlocked` を返すことを検証します。
+     */
     @Test
     fun `blockDiscordAccount returns already blocked when connected component was already blocked`(): Unit = runBlocking {
         val db = createTestDatabase()
@@ -99,6 +108,9 @@ class AccountBlockServiceTest {
         )
     }
 
+    /**
+     * ルート以外のメンバーを指定してもブロックグループ全体が解除されることを検証します。
+     */
     @Test
     fun `unblockDiscordAccount clears whole block group even for non root member`() = runBlocking {
         val db = createTestDatabase()
@@ -130,6 +142,9 @@ class AccountBlockServiceTest {
         }
     }
 
+    /**
+     * ブロックグループ一覧が作成日時の新しい順で返ることを検証します。
+     */
     @Test
     fun `listBlockedDiscordAccountGroups returns newest group first`() = runBlocking {
         val db = createTestDatabase()

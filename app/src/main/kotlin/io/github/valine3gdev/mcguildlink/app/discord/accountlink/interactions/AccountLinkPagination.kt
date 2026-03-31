@@ -30,12 +30,18 @@ private val allAccountLinksPagination = createAccountLinksPagination(
     description = "現在の全ての紐付けを新しい順に表示しています。",
 )
 
+/**
+ * 紐付け一覧用ページ送りボタンを登録します。
+ */
 internal fun InteractionRegistry.installAccountLinksPagination() {
     discordAccountLinksPagination.installPaginationButton()
     minecraftAccountLinksPagination.installPaginationButton()
     allAccountLinksPagination.installPaginationButton()
 }
 
+/**
+ * Discord アカウント単位の紐付け一覧をエフェメラルページネーションで返信します。
+ */
 internal suspend fun respondDiscordAccountLinksPaginated(
     interaction: ActionInteraction,
     links: List<AccountLinkSummary>,
@@ -43,6 +49,9 @@ internal suspend fun respondDiscordAccountLinksPaginated(
     discordAccountLinksPagination.respondEphemeralPaginatedSnapshot(interaction, links)
 }
 
+/**
+ * Minecraft アカウント単位の紐付け一覧をエフェメラルページネーションで返信します。
+ */
 internal suspend fun respondMinecraftAccountLinksPaginated(
     interaction: ActionInteraction,
     links: List<AccountLinkSummary>,
@@ -50,6 +59,9 @@ internal suspend fun respondMinecraftAccountLinksPaginated(
     minecraftAccountLinksPagination.respondEphemeralPaginatedSnapshot(interaction, links)
 }
 
+/**
+ * 全紐付け一覧をエフェメラルページネーションで返信します。
+ */
 internal suspend fun respondAllAccountLinksPaginated(
     interaction: ActionInteraction,
     links: List<AccountLinkSummary>,
@@ -57,6 +69,9 @@ internal suspend fun respondAllAccountLinksPaginated(
     allAccountLinksPagination.respondEphemeralPaginatedSnapshot(interaction, links)
 }
 
+/**
+ * 共通レイアウトを使う紐付け一覧ページネーションを生成します。
+ */
 private fun createAccountLinksPagination(
     prefix: String,
     title: String,
@@ -67,6 +82,9 @@ private fun createAccountLinksPagination(
     renderPage = { _, page -> applyAccountLinksPage(title, description, page) },
 )
 
+/**
+ * 紐付け一覧 1 ページ分の本文を描画します。
+ */
 private fun ContainerBuilder.applyAccountLinksPage(
     title: String,
     description: String,

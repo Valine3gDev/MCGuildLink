@@ -30,7 +30,13 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.uuid.Uuid
 
 
+/**
+ * [WhitelistFileSyncService] の生成内容と再生成制御を検証します。
+ */
 class WhitelistFileSyncServiceTest {
+    /**
+     * リンクが 1 件もない場合に空配列のホワイトリストが出力されることを検証します。
+     */
     @Test
     fun `generateNow writes empty whitelist when no links exist`() = runBlocking {
         val environment = TestEnvironment()
@@ -41,6 +47,9 @@ class WhitelistFileSyncServiceTest {
         assertEquals("[]", environment.whitelistFile.readText().trim())
     }
 
+    /**
+     * UUID 重複を除去しつつ UUID 昇順で出力し、Minecraft 名の大文字小文字を保持することを検証します。
+     */
     @Test
     fun `generateNow writes sorted deduplicated entries and preserves name casing`() = runBlocking {
         val environment = TestEnvironment()
@@ -84,6 +93,9 @@ class WhitelistFileSyncServiceTest {
         assertEquals("MiXeDCaSe", entries[1].getValue("name"))
     }
 
+    /**
+     * ブロック済みアカウントはホワイトリスト出力から除外されることを検証します。
+     */
     @Test
     fun `generateNow removes blocked accounts from whitelist output`() = runBlocking {
         val environment = TestEnvironment()
@@ -105,6 +117,9 @@ class WhitelistFileSyncServiceTest {
         assertEquals("[]", environment.whitelistFile.readText().trim())
     }
 
+    /**
+     * アトミック移動失敗時に既存ファイルを保持し、一時ファイルが掃除されることを検証します。
+     */
     @Test
     fun `generateNow keeps previous whitelist when atomic move fails and cleans up temp file`() = runBlocking {
         val environment = TestEnvironment()
@@ -143,6 +158,9 @@ class WhitelistFileSyncServiceTest {
         assertFalse(environment.whitelistFile.resolveSibling("whitelist.json.tmp").exists())
     }
 
+    /**
+     * 連続した再生成要求では古い処理が打ち切られ、最終状態だけがファイルへ反映されることを検証します。
+     */
     @Test
     fun `attach cancels stale refresh and writes latest state`() = runBlocking {
         val environment = TestEnvironment()

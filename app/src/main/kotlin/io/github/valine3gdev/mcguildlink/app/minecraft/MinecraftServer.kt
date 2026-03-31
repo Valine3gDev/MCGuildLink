@@ -28,6 +28,9 @@ import kotlin.uuid.toKotlinUuid
 private val logger = KotlinLogging.logger {}
 
 
+/**
+ * Minecraft サーバー上でコード入力 UI を提供し、Discord との紐付けを完了させる起動クラスです。
+ */
 class MinecraftServer(
     private val config: MinecraftServerConfig,
     private val accountLinkService: AccountLinkService,
@@ -39,6 +42,9 @@ class MinecraftServer(
         private const val CODE_INPUT_NBT_KEY = "code"
     }
 
+    /**
+     * Minestom サーバーを初期化し、必要なイベントハンドラを登録して起動します。
+     */
     fun start() {
         val minecraftServer = MinecraftServer.init(Auth.Online())
 
@@ -58,6 +64,9 @@ class MinecraftServer(
         minecraftServer.start(config.address, config.port)
     }
 
+    /**
+     * プレイヤー接続時にコード入力待ちとタイムアウト監視を設定します。
+     */
     private fun handleAsyncPlayerConfigurationEvent(
         pendingConfigurationDisconnects: ConcurrentHashMap<UUID, CompletableFuture<Unit>>,
         event: AsyncPlayerConfigurationEvent
@@ -94,6 +103,9 @@ class MinecraftServer(
         }
     }
 
+    /**
+     * ダイアログ送信イベントを受け取り、コード送信や終了操作を処理します。
+     */
     private fun handlePlayerConfigCustomClickEvent(event: PlayerConfigCustomClickEvent) {
         val player = event.player
         val username = player.username
@@ -147,6 +159,9 @@ class MinecraftServer(
         }
     }
 
+    /**
+     * 指定した本文と入力欄から Minestom ダイアログを構築します。
+     */
     private fun buildDialog(
         title: String,
         actionLabel: String,
@@ -181,6 +196,9 @@ class MinecraftServer(
         )
     }
 
+    /**
+     * コード入力用ダイアログをプレイヤーへ表示します。
+     */
     private fun showCodeDialog(
         player: Player,
         initialCode: String = "",
@@ -208,6 +226,9 @@ class MinecraftServer(
         )
     }
 
+    /**
+     * 紐付け成功メッセージを表示します。
+     */
     private fun showSuccessDialog(player: Player, discordUsername: String) {
         player.showDialog(
             buildDialog(
@@ -219,6 +240,9 @@ class MinecraftServer(
         )
     }
 
+    /**
+     * すでに同じ組み合わせが紐付け済みであることを通知します。
+     */
     private fun showAlreadyLinkedDialog(player: Player) {
         player.showDialog(
             buildDialog(
@@ -230,6 +254,9 @@ class MinecraftServer(
         )
     }
 
+    /**
+     * ブロック済みアカウントのため紐付けできないことを通知します。
+     */
     private fun showBlockedDialog(player: Player) {
         player.showDialog(
             buildDialog(

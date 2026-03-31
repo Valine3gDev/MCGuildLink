@@ -13,6 +13,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 
+/**
+ * ホワイトリスト JSON を配信する Ktor ルーティングを構成します。
+ */
 fun Application.configureWhitelistRouting(whitelistFile: Path) {
     install(ConditionalHeaders)
 

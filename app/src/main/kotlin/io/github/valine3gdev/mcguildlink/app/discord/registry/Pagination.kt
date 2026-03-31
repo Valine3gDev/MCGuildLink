@@ -20,6 +20,9 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 
+/**
+ * ページネーション用 custom ID から復元したページ要求情報です。
+ */
 data class PaginationCustomIdData(
     val userId: Snowflake,
     val snapshotId: String,
@@ -27,6 +30,9 @@ data class PaginationCustomIdData(
 )
 
 
+/**
+ * ページネーション済みスナップショットの 1 ページ分を表します。
+ */
 data class PaginationSnapshotPage<T>(
     val snapshotId: String,
     val ownerUserId: Snowflake,
@@ -44,6 +50,9 @@ data class PaginationSnapshotPage<T>(
 }
 
 
+/**
+ * ページネーション対象一覧の一時スナップショットです。
+ */
 private data class PaginationSnapshot<T>(
     val id: String,
     val ownerUserId: Snowflake,
@@ -51,6 +60,9 @@ private data class PaginationSnapshot<T>(
     val pageSize: Int,
     val expiresAt: Instant,
 ) {
+    /**
+     * 要求ページ番号を正規化し、該当するページ情報を返します。
+     */
     fun page(requestedPage: Int): PaginationSnapshotPage<T> {
         val totalEntries = entries.size
         val totalPages = if (totalEntries == 0) 1 else (totalEntries + pageSize - 1) / pageSize
@@ -71,11 +83,17 @@ private data class PaginationSnapshot<T>(
 }
 
 
+/**
+ * 一時的なページネーションスナップショットを保持するストアです。
+ */
 class PaginationSnapshotStore<T>(
     private val ttl: Duration = 10.minutes,
 ) {
     private val snapshots = ConcurrentHashMap<String, PaginationSnapshot<T>>()
 
+    /**
+     * 新しいスナップショットを登録し、先頭ページを返します。
+     */
     fun create(snapshotId: String, ownerUserId: Snowflake, entries: List<T>, pageSize: Int): PaginationSnapshotPage<T> {
         require(pageSize > 0) { "pageSize must be positive" }
 
@@ -93,6 +111,9 @@ class PaginationSnapshotStore<T>(
         return snapshot.page(0)
     }
 
+    /**
+     * スナップショット ID とページ番号からページ情報を取得します。
+     */
     fun getPage(snapshotId: String, page: Int): PaginationSnapshotPage<T>? {
         pruneExpired()
 
@@ -105,16 +126,25 @@ class PaginationSnapshotStore<T>(
         return snapshot.page(page)
     }
 
+    /**
+     * 指定したスナップショットを削除します。
+     */
     fun remove(snapshotId: String) {
         snapshots.remove(snapshotId)
     }
 
+    /**
+     * 有効期限切れスナップショットをストアから除去します。
+     */
     private fun pruneExpired(now: Instant = Instant.now()) {
         snapshots.entries.removeIf { it.value.expiresAt.isExpired(now) }
     }
 }
 
 
+/**
+ * エフェメラルメッセージ向けのページネーション UI を構築するヘルパーです。
+ */
 class EphemeralPagination<T>(
     val prefix: String,
     val pageSize: Int,
@@ -127,6 +157,9 @@ class EphemeralPagination<T>(
 
     private val paginationCustomId = createPaginationCustomId(prefix)
 
+    /**
+     * インタラクション単位のスナップショットを新規作成し、先頭ページを返します。
+     */
     fun createSnapshot(interaction: ActionInteraction, entries: List<T>): PaginationSnapshotPage<T> =
         snapshotStore.create(
             snapshotId = interaction.id.value.toString(),
@@ -135,12 +168,21 @@ class EphemeralPagination<T>(
             pageSize = pageSize,
         )
 
+    /**
+     * custom ID から復元した要求情報をもとに対象ページを取得します。
+     */
     fun getPage(paginationData: PaginationCustomIdData): PaginationSnapshotPage<T>? =
         snapshotStore.getPage(paginationData.snapshotId, paginationData.page)
 
+    /**
+     * 指定ユーザー専用のページ遷移 custom ID を生成します。
+     */
     private fun createCustomIdString(user: User, snapshotId: String, page: Int): String =
         "${prefix}${user.id.value}/$snapshotId/$page"
 
+    /**
+     * 前後ページ移動用のボタン群を描画します。
+     */
     private fun ContainerBuilder.paginationButtons(
         user: User,
         page: PaginationSnapshotPage<T>,
@@ -183,6 +225,9 @@ class EphemeralPagination<T>(
         }
     }
 
+    /**
+     * ページ本体とページネーションボタンを含むメッセージを構築します。
+     */
     private fun MessageBuilder.paginatedSnapshot(
         user: User,
         page: PaginationSnapshotPage<T>,
@@ -195,6 +240,9 @@ class EphemeralPagination<T>(
         }
     }
 
+    /**
+     * 既存エフェメラルメッセージをページ内容で更新します。
+     */
     private suspend fun updateEphemeral(
         event: ComponentInteractionCreateEvent,
         paginationData: PaginationCustomIdData,
@@ -220,6 +268,9 @@ class EphemeralPagination<T>(
     }
 
     context(registry: InteractionRegistry)
+    /**
+     * ページ送りボタンを [InteractionRegistry] に登録します。
+     */
     fun installPaginationButton(
         onInvalidUser: suspend ComponentInteractionCreateEvent.() -> Unit = {
             interaction.respondEphemeral {
@@ -238,6 +289,9 @@ class EphemeralPagination<T>(
         }
     }
 
+    /**
+     * 先頭ページを含むエフェメラルページネーションメッセージを返信します。
+     */
     suspend fun respondEphemeralPaginatedSnapshot(
         interaction: ActionInteraction,
         entries: List<T>,
@@ -251,9 +305,15 @@ class EphemeralPagination<T>(
 }
 
 
+/**
+ * 期限切れかどうかを判定します。
+ */
 private fun Instant.isExpired(now: Instant = Instant.now()): Boolean = !isAfter(now)
 
 
+/**
+ * `ユーザー ID / スナップショット ID / ページ番号` 形式のページネーション custom ID 定義を作成します。
+ */
 fun createPaginationCustomId(prefix: String) = PrefixCustomId(prefix) { data ->
     data.split("/").takeIf { it.size == 3 }?.let { (userIdStr, snapshotId, pageStr) ->
         val userId = userIdStr.toULongOrNull()?.let(::Snowflake) ?: return@let null
@@ -262,6 +322,9 @@ fun createPaginationCustomId(prefix: String) = PrefixCustomId(prefix) { data ->
     }
 }
 
+/**
+ * スナップショット期限切れ時に表示する既定メッセージを構築します。
+ */
 fun MessageBuilder.expiredPaginatedSnapshotMessage(
     text: String = "一覧の有効期限が切れました。もう一度開き直してください。",
 ) {

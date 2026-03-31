@@ -5,6 +5,9 @@ import org.jetbrains.exposed.v1.dao.IntEntity
 import org.jetbrains.exposed.v1.dao.IntEntityClass
 
 
+/**
+ * Discord アカウントを表す Exposed エンティティです。
+ */
 class DiscordAccountEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<DiscordAccountEntity>(DiscordAccounts)
 
@@ -17,6 +20,9 @@ class DiscordAccountEntity(id: EntityID<Int>) : IntEntity(id) {
 }
 
 
+/**
+ * Minecraft アカウントを表す Exposed エンティティです。
+ */
 class MinecraftAccountEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<MinecraftAccountEntity>(MinecraftAccounts)
 
@@ -28,6 +34,9 @@ class MinecraftAccountEntity(id: EntityID<Int>) : IntEntity(id) {
 }
 
 
+/**
+ * Discord アカウントと Minecraft アカウントの紐付けを表す Exposed エンティティです。
+ */
 class AccountLinkEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<AccountLinkEntity>(AccountLinks)
 
@@ -37,6 +46,9 @@ class AccountLinkEntity(id: EntityID<Int>) : IntEntity(id) {
 }
 
 
+/**
+ * Discord アカウントに対して発行した紐付けコードを表す Exposed エンティティです。
+ */
 class LinkRequestEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<LinkRequestEntity>(LinkRequests)
 
@@ -45,6 +57,9 @@ class LinkRequestEntity(id: EntityID<Int>) : IntEntity(id) {
 }
 
 
+/**
+ * 関連するブロック済みアカウント群をまとめる Exposed エンティティです。
+ */
 class BlockGroupEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<BlockGroupEntity>(BlockGroups)
 
@@ -56,6 +71,9 @@ class BlockGroupEntity(id: EntityID<Int>) : IntEntity(id) {
 }
 
 
+/**
+ * ブロックされた Discord アカウントを表す Exposed エンティティです。
+ */
 class BlockedDiscordAccountEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<BlockedDiscordAccountEntity>(BlockedDiscordAccounts)
 
@@ -64,6 +82,9 @@ class BlockedDiscordAccountEntity(id: EntityID<Int>) : IntEntity(id) {
 }
 
 
+/**
+ * ブロックされた Minecraft アカウントを表す Exposed エンティティです。
+ */
 class BlockedMinecraftAccountEntity(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<BlockedMinecraftAccountEntity>(BlockedMinecraftAccounts)
 

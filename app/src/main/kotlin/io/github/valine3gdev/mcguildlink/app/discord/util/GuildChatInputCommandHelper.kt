@@ -15,6 +15,9 @@ import dev.kord.core.on
 
 typealias CommandEventHandler = suspend GuildChatInputCommandInteractionCreateEvent.() -> Unit
 
+/**
+ * 指定したギルドコマンドに紐づくインタラクションイベントを購読し、条件に一致したときだけ処理を実行します。
+ */
 context(command: GuildChatInputCommand)
 inline fun <reified COMMAND : InteractionCommand> Kord.onCommand(
     crossinline predicate: suspend (command: COMMAND) -> Boolean,
@@ -29,6 +32,9 @@ inline fun <reified COMMAND : InteractionCommand> Kord.onCommand(
     }
 }
 
+/**
+ * ルートコマンド実行時のハンドラを登録します。
+ */
 context(kord: Kord)
 inline fun GuildChatInputCommand.handleRoot(
     crossinline block: CommandEventHandler
@@ -37,6 +43,9 @@ inline fun GuildChatInputCommand.handleRoot(
     return this
 }
 
+/**
+ * 指定したサブコマンド実行時のハンドラを登録します。
+ */
 context(kord: Kord)
 inline fun GuildChatInputCommand.handleSub(
     subCommandName: String,
@@ -46,6 +55,9 @@ inline fun GuildChatInputCommand.handleSub(
     return this
 }
 
+/**
+ * 指定したグループ配下のサブコマンド実行時のハンドラを登録します。
+ */
 context(kord: Kord)
 inline fun GuildChatInputCommand.handleGroupedSub(
     groupName: String,

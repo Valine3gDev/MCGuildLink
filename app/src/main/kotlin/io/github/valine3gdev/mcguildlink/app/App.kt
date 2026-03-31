@@ -17,6 +17,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 
+/**
+ * 設定読み込み、各種サービス初期化、Discord Bot・Minecraft サーバー・Web サーバーの起動をまとめる
+ * アプリケーションエントリポイントです。
+ */
 class App(
     paths: AppPaths = AppPaths.detect()
 ) {
@@ -42,6 +46,9 @@ class App(
         configureWhitelistRouting(paths.whitelistFile)
     }
 
+    /**
+     * ホワイトリスト同期、Discord Bot、Minecraft サーバー、Web サーバーを起動します。
+     */
     suspend fun start() {
         whitelistFileSyncService.generateNow()
         val kord = Kord(config.bot.token)
@@ -81,6 +88,9 @@ class App(
     }
 }
 
+/**
+ * デフォルト設定でアプリケーションを生成して起動します。
+ */
 suspend fun main() {
     val app = App()
     app.start()

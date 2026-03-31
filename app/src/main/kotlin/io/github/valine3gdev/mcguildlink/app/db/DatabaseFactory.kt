@@ -9,7 +9,13 @@ import java.sql.Connection
 
 
 // TODO: DBのマイグレーションを実装する
+/**
+ * SQLite データベースへの接続と初期スキーマ作成を担当します。
+ */
 object DatabaseFactory {
+    /**
+     * 指定した DB ファイルへ接続し、必要なテーブルとトリガーを作成します。
+     */
     fun connect(dbFile: Path): Database {
         return Database.connect(
             url = "jdbc:sqlite:${dbFile.toAbsolutePath()}",

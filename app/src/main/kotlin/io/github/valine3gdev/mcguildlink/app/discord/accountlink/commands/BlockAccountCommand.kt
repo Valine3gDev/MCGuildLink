@@ -17,6 +17,9 @@ import io.github.valine3gdev.mcguildlink.app.util.unblockDiscordAccount
 
 private const val USER_OPTION_KEY = "user"
 
+/**
+ * ブロック追加・解除・一覧表示を行う管理者向けコマンドを登録します。
+ */
 context(accountBlockService: AccountBlockService)
 internal suspend fun Kord.installBlockAccountCommand(guildId: Snowflake, moderatorRole: Snowflake) {
     createGuildChatInputCommand(

@@ -4,6 +4,9 @@ import java.nio.file.Path
 import kotlin.io.path.createDirectories
 
 
+/**
+ * アプリケーションが利用する設定・静的ファイル・データファイルのパス一覧です。
+ */
 data class AppPaths(
     val appHome: Path,
     val configFile: Path,
@@ -13,6 +16,10 @@ data class AppPaths(
     val dbFile: Path,
 ) {
     companion object {
+        /**
+         * 実行環境に応じてアプリケーションのホームディレクトリを推定し、必要なディレクトリを作成したうえで
+         * 利用パスを解決します。
+         */
         fun detect(): AppPaths {
             val codeSource = AppPaths::class.java
                 .protectionDomain

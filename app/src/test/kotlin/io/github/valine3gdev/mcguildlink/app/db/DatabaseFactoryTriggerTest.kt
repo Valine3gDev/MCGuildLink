@@ -10,7 +10,13 @@ import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 
 
+/**
+ * DB トリガーがブロック済みアカウントの不正な挿入を拒否することを検証します。
+ */
 class DatabaseFactoryTriggerTest {
+    /**
+     * ブロック済み Discord アカウントは紐付けコードを作成できないことを検証します。
+     */
     @Test
     fun `link request insert is rejected for blocked discord account`() {
         val db = createTestDatabase()
@@ -42,6 +48,9 @@ class DatabaseFactoryTriggerTest {
         )
     }
 
+    /**
+     * ブロック済み Discord アカウントを含む紐付け挿入が拒否されることを検証します。
+     */
     @Test
     fun `account link insert is rejected for blocked discord account`() {
         val db = createTestDatabase()
@@ -76,6 +85,9 @@ class DatabaseFactoryTriggerTest {
         assertTrue(error.fullMessage().contains("blocked account cannot be linked"))
     }
 
+    /**
+     * ブロック済み Minecraft アカウントを含む紐付け挿入が拒否されることを検証します。
+     */
     @Test
     fun `account link insert is rejected for blocked minecraft account`() {
         val db = createTestDatabase()
@@ -114,6 +126,9 @@ class DatabaseFactoryTriggerTest {
         assertTrue(error.fullMessage().contains("blocked account cannot be linked"))
     }
 
+    /**
+     * ブロックされていないアカウント同士の挿入は成功することを検証します。
+     */
     @Test
     fun `non blocked inserts succeed`() {
         val db = createTestDatabase()
@@ -150,6 +165,9 @@ class DatabaseFactoryTriggerTest {
     }
 }
 
+/**
+ * 例外チェーン全体のメッセージを 1 つの文字列へ連結します。
+ */
 private fun Throwable.fullMessage(): String =
     generateSequence(this) { it.cause }
         .mapNotNull { it.message }

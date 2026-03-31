@@ -19,11 +19,17 @@ import kotlin.collections.forEach
 import kotlin.uuid.Uuid
 
 
+/**
+ * Discord アカウントと Minecraft アカウントの紐付け管理を担当するサービスです。
+ */
 class AccountLinkService(
     private val db: Database,
     private val codeGenerator: LinkCodeGenerator = RandomLinkCodeGenerator(),
     private val whitelistRefreshRequester: WhitelistRefreshRequester = NoopWhitelistRefreshRequester,
 ) {
+    /**
+     * Discord ユーザーの紐付けコードを取得し、未発行なら新しく作成します。
+     */
     suspend fun getOrCreateLinkRequest(discordUserId: ULong, username: String) = suspendTransaction(db) {
         val discord = AccountStore.getOrCreateDiscordAccount(discordUserId, username)
         if (discord.isBlocked()) {
@@ -38,6 +44,9 @@ class AccountLinkService(
         LinkRequestResult.Success(request.code)
     }
 
+    /**
+     * 紐付けコードを消費して Discord アカウントと Minecraft アカウントを紐付けます。
+     */
     fun consumeCodeAndLink(code: String, uuid: Uuid, name: String): LinkResult {
         val result = transaction(db) {
             val request = LinkRequestEntity.find {
@@ -76,6 +85,9 @@ class AccountLinkService(
         return result
     }
 
+    /**
+     * Discord ユーザーに紐付いている Minecraft アカウント一覧を取得します。
+     */
     suspend fun getLinkedMinecraftAccounts(userId: ULong): List<MinecraftAccountInfo> = suspendTransaction(db) {
         val discord = AccountStore.getDiscordAccountOrNull(userId) ?: return@suspendTransaction emptyList()
         discord.links.map { link ->
@@ -84,6 +96,9 @@ class AccountLinkService(
         }
     }
 
+    /**
+     * Minecraft アカウントに紐付いている Discord アカウント一覧を取得します。
+     */
     suspend fun getLinkedDiscordAccounts(uuid: Uuid): List<DiscordAccountInfo> = suspendTransaction(db) {
         val minecraft = AccountStore.getMinecraftAccountOrNull(uuid) ?: return@suspendTransaction emptyList()
         minecraft.links.map { link ->
@@ -92,6 +107,9 @@ class AccountLinkService(
         }
     }
 
+    /**
+     * 指定した Discord ユーザーと Minecraft UUID の紐付け情報を取得します。
+     */
     suspend fun getLinkOrNull(discordUserId: ULong, minecraftUuid: Uuid) = suspendTransaction(db) {
         val link = AccountStore.getAccountLinkOrNull(discordUserId, minecraftUuid) ?: return@suspendTransaction null
         val discord = link.discordAccount
@@ -102,6 +120,9 @@ class AccountLinkService(
         )
     }
 
+    /**
+     * Discord ユーザーに紐付いたアカウント一覧を紐付け日時の降順で返します。
+     */
     suspend fun listLinksByDiscord(discordUserId: ULong): List<AccountLinkSummary> = suspendTransaction(db) {
         val discord = AccountStore.getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction emptyList()
         discord.links
@@ -109,6 +130,9 @@ class AccountLinkService(
             .sortedByDescending { it.linkedAt }
     }
 
+    /**
+     * Minecraft アカウントに紐付いたアカウント一覧を紐付け日時の降順で返します。
+     */
     suspend fun listLinksByMinecraft(uuid: Uuid): List<AccountLinkSummary> = suspendTransaction(db) {
         val minecraft = AccountStore.getMinecraftAccountOrNull(uuid) ?: return@suspendTransaction emptyList()
         minecraft.links
@@ -116,12 +140,18 @@ class AccountLinkService(
             .sortedByDescending { it.linkedAt }
     }
 
+    /**
+     * すべての紐付けを紐付け日時の降順で返します。
+     */
     suspend fun listAllLinks(): List<AccountLinkSummary> = suspendTransaction(db) {
         AccountLinkEntity.all()
             .map { it.toSummary() }
             .sortedByDescending { it.linkedAt }
     }
 
+    /**
+     * 指定した組み合わせの紐付けを 1 件だけ解除します。
+     */
     suspend fun unlink(discordUserId: ULong, minecraftUuid: Uuid): Boolean {
         val removed = suspendTransaction(db) {
             val link =
@@ -137,6 +167,9 @@ class AccountLinkService(
         return removed
     }
 
+    /**
+     * Discord ユーザーに紐付くすべての Minecraft アカウントを解除し、解除した一覧を返します。
+     */
     suspend fun unlinkByDiscord(discordUserId: ULong): List<MinecraftAccountInfo> = suspendTransaction(db) {
         val discord = AccountStore.getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction null
         val links = discord.links.toList()
@@ -155,6 +188,9 @@ class AccountLinkService(
         whitelistRefreshRequester.requestRefresh()
     } ?: emptyList()
 
+    /**
+     * 既存コードと衝突しない紐付けコードを生成します。
+     */
     private fun generateUniqueCode(): String {
         repeat(20) {
             val code = codeGenerator.generate()
@@ -167,6 +203,9 @@ class AccountLinkService(
     }
 }
 
+/**
+ * 永続化済みの紐付けエンティティを表示用 DTO に変換します。
+ */
 private fun AccountLinkEntity.toSummary(): AccountLinkSummary {
     val discord = discordAccount
     val minecraft = minecraftAccount

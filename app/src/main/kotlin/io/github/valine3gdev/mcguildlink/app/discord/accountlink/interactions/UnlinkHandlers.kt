@@ -13,6 +13,9 @@ import io.github.valine3gdev.mcguildlink.app.util.getLinkOrNull
 import io.github.valine3gdev.mcguildlink.app.util.unlink
 
 
+/**
+ * 紐付け解除ボタンと確認モーダルのハンドラを登録します。
+ */
 context(accountLinkService: AccountLinkService)
 internal fun InteractionRegistry.installUnlinkHandlers() {
     interactionButton(createLinkedCustomId(UNLINK_BUTTON_ID_PREFIX)) {

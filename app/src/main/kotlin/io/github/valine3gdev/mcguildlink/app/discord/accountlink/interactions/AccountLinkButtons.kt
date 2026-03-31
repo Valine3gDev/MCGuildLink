@@ -34,6 +34,9 @@ private val linkedAccountsPagination = EphemeralPagination(
     renderPage = { user, page -> applyLinkedAccountsPage(page, user) },
 )
 
+/**
+ * 紐付け開始ボタン、紐付け一覧ボタン、一覧ページ送りを登録します。
+ */
 context(accountLinkService: AccountLinkService)
 internal fun InteractionRegistry.installAccountLinkButtons() {
     interactionButton(START_LINK_BUTTON_ID) {
@@ -71,6 +74,9 @@ internal fun InteractionRegistry.installAccountLinkButtons() {
     linkedAccountsPagination.installPaginationButton()
 }
 
+/**
+ * 自分に紐付いた Minecraft アカウント一覧ページを描画します。
+ */
 private fun ContainerBuilder.applyLinkedAccountsPage(
     page: PaginationSnapshotPage<MinecraftAccountInfo>,
     user: User,
@@ -92,6 +98,9 @@ private fun ContainerBuilder.applyLinkedAccountsPage(
     }
 }
 
+/**
+ * Minecraft アカウント 1 件分の表示と解除ボタンを描画します。
+ */
 private fun ContainerBuilder.appendMinecraftAccount(user: User, minecraft: MinecraftAccountInfo) {
     val uuid = minecraft.uuid
 

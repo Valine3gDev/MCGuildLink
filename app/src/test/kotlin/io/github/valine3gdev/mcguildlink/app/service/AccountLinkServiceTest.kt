@@ -24,7 +24,13 @@ import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 
 
+/**
+ * [AccountLinkService] の紐付けコード発行、紐付け、一覧取得、解除の振る舞いを検証します。
+ */
 class AccountLinkServiceTest {
+    /**
+     * 同一 Discord ユーザーへのコード再発行時に既存コードを再利用し、ユーザー名だけ更新することを検証します。
+     */
     @Test
     fun `getOrCreateLinkRequest reuses existing code and updates username`() = runBlocking {
         val db = createTestDatabase()
@@ -50,6 +56,9 @@ class AccountLinkServiceTest {
         }
     }
 
+    /**
+     * コード消費で紐付けが永続化され、リクエスト削除と各種参照 API が期待どおり動くことを検証します。
+     */
     @Test
     fun `consumeCodeAndLink persists link removes request and exposes lookup apis`() = runBlocking {
         val db = createTestDatabase()
@@ -85,6 +94,9 @@ class AccountLinkServiceTest {
         }
     }
 
+    /**
+     * 存在しないコードを消費しようとすると `InvalidCode` が返ることを検証します。
+     */
     @Test
     fun `consumeCodeAndLink returns invalid code when request is missing`() {
         val service = AccountLinkService(createTestDatabase())
@@ -98,6 +110,9 @@ class AccountLinkServiceTest {
         )
     }
 
+    /**
+     * 既存の紐付けと同じ組み合わせに対しては `AlreadyLinked` を返し、重複登録しないことを検証します。
+     */
     @Test
     fun `consumeCodeAndLink returns already linked when relation exists`() = runBlocking {
         val db = createTestDatabase()
@@ -119,6 +134,9 @@ class AccountLinkServiceTest {
         }
     }
 
+    /**
+     * 一覧取得 API が `linkedAt` 降順で結果を返すことを検証します。
+     */
     @Test
     fun `list methods return links in descending linkedAt order`() = runBlocking {
         val db = createTestDatabase()
@@ -152,6 +170,9 @@ class AccountLinkServiceTest {
         )
     }
 
+    /**
+     * ブロック済み Discord/Minecraft アカウントではコード発行や紐付け確定が拒否されることを検証します。
+     */
     @Test
     fun `blocked accounts are rejected for request creation and link consumption`(): Unit = runBlocking {
         val db = createTestDatabase()
@@ -176,6 +197,9 @@ class AccountLinkServiceTest {
         )
     }
 
+    /**
+     * 単体解除と Discord 単位の一括解除が永続状態からリンクを削除することを検証します。
+     */
     @Test
     fun `unlink methods remove links from persistent state`() = runBlocking {
         val db = createTestDatabase()
@@ -208,6 +232,9 @@ class AccountLinkServiceTest {
     }
 }
 
+/**
+ * テスト用に紐付け日時を直接更新します。
+ */
 private fun setLinkedAt(
     db: Database,
     discordUserId: ULong,

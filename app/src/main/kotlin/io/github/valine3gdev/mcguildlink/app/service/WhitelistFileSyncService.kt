@@ -28,6 +28,9 @@ import kotlin.io.path.writeText
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * DB 上の紐付け状態から Minecraft ホワイトリストファイルを再生成する内部サービスです。
+ */
 internal class WhitelistFileSyncService(
     private val db: Database,
     private val whitelistFile: Path,
@@ -46,10 +49,16 @@ internal class WhitelistFileSyncService(
         onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST,
     )
 
+    /**
+     * 最新状態でホワイトリストを再生成するよう通知します。
+     */
     override fun requestRefresh() {
         refreshRequests.tryEmit(Unit)
     }
 
+    /**
+     * 現在の紐付け状態を読み取り、ホワイトリスト JSON を即時生成します。
+     */
     suspend fun generateNow() {
         val entries = suspendTransaction(db) {
             AccountLinkEntity.all()
@@ -76,6 +85,9 @@ internal class WhitelistFileSyncService(
         logger.info { "Generated whitelist file at $whitelistFile with ${entries.size} entries." }
     }
 
+    /**
+     * 再生成要求を購読し、常に最新の要求だけを反映する同期ジョブを開始します。
+     */
     fun attach(scope: CoroutineScope): Job = scope.launch {
         refreshRequests.collectLatest {
             try {
@@ -88,6 +100,9 @@ internal class WhitelistFileSyncService(
         }
     }
 
+    /**
+     * ホワイトリスト JSON を一時ファイルへ書き出し、アトミックに差し替えます。
+     */
     private suspend fun writeWhitelist(entries: List<MinecraftWhitelistEntry>) {
         withContext(Dispatchers.IO) {
             val parent = whitelistFile.parent ?: error("Whitelist file must have a parent directory: $whitelistFile")
@@ -112,6 +127,9 @@ internal class WhitelistFileSyncService(
 
 
 @Serializable
+/**
+ * `whitelist.json` へ出力する Minecraft アカウント情報です。
+ */
 internal data class MinecraftWhitelistEntry(
     val uuid: String,
     val name: String,

@@ -26,30 +26,51 @@ import kotlin.time.Instant
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * 監査ログ向けメッセージ送信の抽象化です。
+ */
 interface AuditLogSender {
+    /**
+     * 指定内容の監査ログを送信します。
+     */
     fun send(timestamp: Instant = Clock.System.now(), entry: ContainerBuilder.() -> Unit)
 
+    /**
+     * 情報レベルの監査ログを送信します。
+     */
     fun sendInfo(timestamp: Instant = Clock.System.now(), entry: ContainerBuilder.() -> Unit) = send(timestamp) {
         entry.invoke(this)
         this.accentColor = Color(87, 242, 135)
     }
 
+    /**
+     * 警告レベルの監査ログを送信します。
+     */
     fun sendWarn(timestamp: Instant = Clock.System.now(), entry: ContainerBuilder.() -> Unit) = send(timestamp) {
         entry.invoke(this)
         this.accentColor = Color(254, 231, 92)
     }
 
+    /**
+     * エラーレベルの監査ログを送信します。
+     */
     fun sendError(timestamp: Instant = Clock.System.now(), entry: ContainerBuilder.() -> Unit) = send(timestamp) {
         entry.invoke(this)
         this.accentColor = Color(237, 66, 69)
     }
 }
 
+/**
+ * Discord チャンネルへ監査ログメッセージを非同期送信する実装です。
+ */
 class DiscordAuditLogSender(
     private val kord: Kord,
     private val channelId: Snowflake,
     private val scope: CoroutineScope,
 ) : AuditLogSender {
+    /**
+     * 監査ログ用チャンネルへ Components V2 メッセージを送信します。
+     */
     override fun send(timestamp: Instant, entry: ContainerBuilder.() -> Unit) {
         scope.launch {
             try {
@@ -75,6 +96,9 @@ class DiscordAuditLogSender(
     }
 }
 
+/**
+ * 紐付け成功ログを送信します。
+ */
 fun AuditLogSender.sendLinkSucceeded(discordAccount: DiscordAccountInfo, minecraftAccount: MinecraftAccountInfo) =
     sendInfo {
         textDisplay("下記のアカウントの紐付けが完了しました。")
@@ -99,6 +123,9 @@ fun AuditLogSender.sendLinkSucceeded(discordAccount: DiscordAccountInfo, minecra
         }
     }
 
+/**
+ * メンバー退出に伴う自動解除ログを送信します。
+ */
 fun AuditLogSender.sendMemberLeaveUnlinked(leftUser: User, minecraftAccounts: List<MinecraftAccountInfo>) =
     sendInfo {
         textDisplay("メンバーの退出を検知したため、下記アカウントの紐付けを自動解除しました。")
@@ -118,6 +145,9 @@ fun AuditLogSender.sendMemberLeaveUnlinked(leftUser: User, minecraftAccounts: Li
         )
     }
 
+/**
+ * メンバー BAN に伴う自動ブロックログを送信します。
+ */
 fun AuditLogSender.sendMemberBannedBlocked(result: BlockResult.Success) =
     sendInfo {
         val (discordAccount, blockedDiscordAccounts, blockedMinecraftAccounts) = result

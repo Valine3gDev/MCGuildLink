@@ -19,7 +19,13 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 
 
+/**
+ * ホワイトリスト配信ルーティングのレスポンス内容と条件付き GET を検証します。
+ */
 class WhitelistRoutingTest {
+    /**
+     * ホワイトリスト取得時に JSON 本文と Last-Modified ヘッダーが返ることを検証します。
+     */
     @Test
     fun `GET whitelist returns json with last-modified header`() = testApplication {
         val whitelistFile = createWhitelistFile(
@@ -44,6 +50,9 @@ class WhitelistRoutingTest {
         assertNotNull(response.headers[HttpHeaders.LastModified])
     }
 
+    /**
+     * 変更がない場合に `If-Modified-Since` で 304 が返ることを検証します。
+     */
     @Test
     fun `If-Modified-Since returns 304 when whitelist is unchanged`() = testApplication {
         val whitelistFile = createWhitelistFile("[]", Instant.parse("2026-03-28T00:00:00Z"))
@@ -63,6 +72,9 @@ class WhitelistRoutingTest {
         assertEquals("", cachedResponse.bodyAsText())
     }
 
+    /**
+     * ファイル更新後は新しい本文と更新された Last-Modified が返ることを検証します。
+     */
     @Test
     fun `updated whitelist returns new body and last-modified value`() = testApplication {
         val whitelistFile = createWhitelistFile("[]", Instant.parse("2026-03-28T00:00:00Z"))
@@ -92,6 +104,9 @@ class WhitelistRoutingTest {
         assertNotEquals(initialLastModified, updatedLastModified)
     }
 
+    /**
+     * ホワイトリストファイルが存在しない場合は 404 を返すことを検証します。
+     */
     @Test
     fun `missing whitelist returns 404`() = testApplication {
         val root = createTempDirectory("mcguildlink-whitelist-route-")
@@ -106,6 +121,9 @@ class WhitelistRoutingTest {
         assertEquals(HttpStatusCode.NotFound, response.status)
     }
 
+    /**
+     * 指定内容と更新日時を持つ一時ホワイトリストファイルを作成します。
+     */
     private fun createWhitelistFile(content: String, lastModifiedAt: Instant): Path {
         val root = createTempDirectory("mcguildlink-whitelist-route-")
         val whitelistFile = root.resolve("whitelist.json")
