@@ -18,6 +18,8 @@ import net.minestom.server.entity.Player
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent
 import net.minestom.server.event.player.PlayerConfigCustomClickEvent
 import net.minestom.server.event.player.PlayerDisconnectEvent
+import net.minestom.server.event.server.ServerListPingEvent
+import net.minestom.server.ping.Status
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
@@ -59,6 +61,12 @@ class MinecraftServer(
         }
         globalEventHandler.addListener(PlayerDisconnectEvent::class.java) { event ->
             pendingConfigurationDisconnects.remove(event.player.uuid)?.complete(Unit)
+        }
+        globalEventHandler.addListener(ServerListPingEvent::class.java) { event ->
+            event.status = Status.builder()
+                .playerInfo(0, Int.MAX_VALUE)
+                .description(Component.text("アカウント紐付け用サーバー"))
+                .build()
         }
 
         minecraftServer.start(config.address, config.port)
