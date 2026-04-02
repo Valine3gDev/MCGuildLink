@@ -64,8 +64,7 @@ class App(
                 )
                 val bot = Bot(
                     kord = kord,
-                    guildId = config.bot.guild,
-                    moderatorRole = config.bot.moderatorRole,
+                    config = config.bot,
                     accountLinkService = accountLinkService,
                     accountBlockService = accountBlockService,
                     auditLogSender = auditLogSender,

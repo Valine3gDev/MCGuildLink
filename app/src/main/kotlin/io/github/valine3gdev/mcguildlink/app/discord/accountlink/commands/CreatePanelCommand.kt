@@ -34,11 +34,8 @@ internal suspend fun Kord.installCreatePanelCommand(guildId: Snowflake, moderato
                 textDisplay(
                     """
                             Minecraftアカウントと Discordアカウントを紐付けます。
-                            「MCアカウントと紐付ける」ボタンを押して、手順に従ってください。
+                            「MCアカウントと紐付ける」ボタンを押して、指示に従ってください。
                             「紐付けられたアカウントを確認する」ボタンを押すと、現在紐付けられているアカウントの一覧を確認できます。
-
-                            ## 紐付け手順
-                            TODO
                         """.trimIndent()
                 )
 

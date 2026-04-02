@@ -45,6 +45,9 @@ data class BotConfig(
 
     @SerialName("log_channel")
     val logChannel: Snowflake,
+
+    @SerialName("display_server_address")
+    val displayServerAddress: String,
 )
 
 

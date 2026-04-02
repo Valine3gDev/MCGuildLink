@@ -11,6 +11,7 @@ import dev.kord.rest.builder.component.actionRow
 import dev.kord.rest.builder.component.section
 import dev.kord.rest.builder.component.separator
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.valine3gdev.mcguildlink.app.config.BotConfig
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.LIST_LINK_BUTTON_ID
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.START_LINK_BUTTON_ID
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.UNLINK_BUTTON_ID_PREFIX
@@ -37,7 +38,7 @@ private val linkedAccountsPagination = EphemeralPagination(
 /**
  * 紐付け開始ボタン、紐付け一覧ボタン、一覧ページ送りを登録します。
  */
-context(accountLinkService: AccountLinkService)
+context(config: BotConfig, accountLinkService: AccountLinkService)
 internal fun InteractionRegistry.installAccountLinkButtons() {
     interactionButton(START_LINK_BUTTON_ID) {
         when (val request = accountLinkService.getOrCreateLinkRequest(interaction.user)) {
@@ -45,7 +46,13 @@ internal fun InteractionRegistry.installAccountLinkButtons() {
                 logger.debug { "Requesting link code for user ${interaction.user.tag} (${interaction.user.id})" }
                 interaction.respondEphemeral {
                     content = """
-                        コードは以下の通りです。
+                        Minecraft 1.21.11 で以下のサーバーに接続し、表示される入力欄にコードを入力してください。
+                        
+                        サーバーアドレス:
+                        ```
+                        ${config.displayServerAddress}
+                        ```
+                        コード:
                         ```
                         ${request.code}
                         ```

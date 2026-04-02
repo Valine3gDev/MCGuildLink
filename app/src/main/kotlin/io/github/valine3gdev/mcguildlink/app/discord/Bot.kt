@@ -2,13 +2,13 @@ package io.github.valine3gdev.mcguildlink.app.discord
 
 import dev.kord.core.Kord
 import dev.kord.core.behavior.requestMembers
-import dev.kord.common.entity.Snowflake
 import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.event.guild.GuildCreateEvent
 import dev.kord.core.on
 import dev.kord.gateway.Intent
 import dev.kord.gateway.PrivilegedIntent
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.valine3gdev.mcguildlink.app.config.BotConfig
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.installAccountLinkHandlers
 import io.github.valine3gdev.mcguildlink.app.discord.accountlink.installCommands
 import io.github.valine3gdev.mcguildlink.app.discord.logging.AuditLogSender
@@ -25,8 +25,7 @@ private val logger = KotlinLogging.logger {}
  */
 class Bot(
     private val kord: Kord,
-    private val guildId: Snowflake,
-    private val moderatorRole: Snowflake,
+    private val config: BotConfig,
     private val accountLinkService: AccountLinkService,
     private val accountBlockService: AccountBlockService,
     private val auditLogSender: AuditLogSender,
@@ -36,12 +35,12 @@ class Bot(
      */
     suspend fun start() {
         val interactions = InteractionRegistry(kord)
-        context(accountLinkService, accountBlockService) {
+        context(config, accountLinkService, accountBlockService) {
             context(auditLogSender) {
                 installAccountLinkHandlers(kord, interactions)
             }
 
-            installCommands(kord, guildId, moderatorRole)
+            installCommands(kord)
         }
 
         kord.on<GuildCreateEvent> {
