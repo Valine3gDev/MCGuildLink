@@ -3,7 +3,7 @@ kotlin = "2.3.20"
 
 kotlinx-coroutines = "1.10.2"
 minestom = "2026.03.25-1.21.11"
-kord = "0.18.1"
+kord = "0.19.0-SNAPSHOT"
 
 kotlinx-serialization-json = "1.9.0"
 tomlkt = "0.6.0"
