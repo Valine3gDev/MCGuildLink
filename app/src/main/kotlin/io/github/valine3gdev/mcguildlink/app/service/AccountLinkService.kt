@@ -184,6 +184,16 @@ class AccountLinkService(
     } ?: emptyList()
 
     /**
+     * Discord ユーザーに紐付いた紐付けリクエストを削除します。
+     */
+    suspend fun deleteLinkRequestByDiscord(discordUserId: ULong): Boolean = suspendTransaction(db) {
+        val discord = AccountStore.getDiscordAccountOrNull(discordUserId) ?: return@suspendTransaction false
+        val request = discord.linkRequest ?: return@suspendTransaction false
+        request.delete()
+        true
+    }
+
+    /**
      * 既存コードと衝突しない紐付けコードを生成します。
      */
     private fun generateUniqueCode(): String {

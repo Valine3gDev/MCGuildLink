@@ -12,6 +12,7 @@ import io.github.valine3gdev.mcguildlink.app.service.AccountBlockService
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import io.github.valine3gdev.mcguildlink.app.service.dto.BlockResult
 import io.github.valine3gdev.mcguildlink.app.util.blockDiscordAccount
+import io.github.valine3gdev.mcguildlink.app.util.deleteLinkRequestByDiscord
 import io.github.valine3gdev.mcguildlink.app.util.unlinkByDiscord
 
 
@@ -24,6 +25,7 @@ context(accountLinkService: AccountLinkService, accountBlockService: AccountBloc
 internal fun Kord.installAccountLinkMemberLeaveHandler() {
     on<MemberLeaveEvent> {
         val linkedMinecraftAccounts = accountLinkService.unlinkByDiscord(user)
+        accountLinkService.deleteLinkRequestByDiscord(user)
         if (linkedMinecraftAccounts.isEmpty()) {
             return@on
         }

@@ -10,7 +10,9 @@ import io.github.valine3gdev.mcguildlink.app.testutil.createTestDatabase
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 
 
@@ -45,10 +47,10 @@ class WhitelistRefreshRequesterIntegrationTest {
         assertIs<LinkResult.AlreadyLinked>(service.consumeCodeAndLink(secondCode, minecraftUuid, "MiXeDCaSe"))
         assertEquals(1, requester.count)
 
-        assertEquals(false, service.unlink(1u, Uuid.parse("00000000-0000-0000-0000-000000000102")))
+        assertFalse(service.unlink(1u, Uuid.parse("00000000-0000-0000-0000-000000000102")))
         assertEquals(1, requester.count)
 
-        assertEquals(true, service.unlink(1u, minecraftUuid))
+        assertTrue(service.unlink(1u, minecraftUuid))
         assertEquals(2, requester.count)
 
         val thirdCode = assertIs<LinkRequestResult.Success>(service.getOrCreateLinkRequest(1u, "discord-1")).code
@@ -73,6 +75,13 @@ class WhitelistRefreshRequesterIntegrationTest {
         assertEquals(4, requester.count)
 
         assertEquals(emptyList(), service.unlinkByDiscord(1u))
+        assertEquals(4, requester.count)
+
+        assertIs<LinkRequestResult.Success>(service.getOrCreateLinkRequest(1u, "discord-1"))
+        assertTrue(service.deleteLinkRequestByDiscord(1u))
+        assertEquals(4, requester.count)
+
+        assertFalse(service.deleteLinkRequestByDiscord(1u))
         assertEquals(4, requester.count)
     }
 

@@ -230,6 +230,31 @@ class AccountLinkServiceTest {
             assertTrue(AccountLinkEntity.all().toList().isEmpty())
         }
     }
+
+    /**
+     * Discord 単位の紐付けリクエスト削除が、リンクを残したままリクエストだけを消すことを検証します。
+     */
+    @Test
+    fun `deleteLinkRequestByDiscord removes only request from persistent state`() = runBlocking {
+        val db = createTestDatabase()
+        val service = AccountLinkService(db)
+        val minecraftUuid = Uuid.parse("00000000-0000-0000-0000-000000000309")
+
+        createLink(service, 1u, "discord-1", minecraftUuid, "Steve")
+        assertIs<LinkRequestResult.Success>(service.getOrCreateLinkRequest(1u, "discord-1"))
+
+        assertTrue(service.deleteLinkRequestByDiscord(1u))
+        assertFalse(service.deleteLinkRequestByDiscord(1u))
+        assertEquals(
+            listOf(MinecraftAccountInfo(minecraftUuid, "Steve")),
+            service.getLinkedMinecraftAccounts(1u)
+        )
+
+        transaction(db) {
+            assertTrue(LinkRequestEntity.all().toList().isEmpty())
+            assertEquals(1, AccountLinkEntity.all().toList().size)
+        }
+    }
 }
 
 /**

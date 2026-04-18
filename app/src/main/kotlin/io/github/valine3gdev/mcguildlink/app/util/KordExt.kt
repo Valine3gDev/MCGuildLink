@@ -37,6 +37,12 @@ suspend fun AccountLinkService.unlinkByDiscord(user: User) =
     unlinkByDiscord(user.id.value)
 
 /**
+ * Discord ユーザーに紐付いた紐付けリクエストを削除します。
+ */
+suspend fun AccountLinkService.deleteLinkRequestByDiscord(user: User) =
+    deleteLinkRequestByDiscord(user.id.value)
+
+/**
  * Discord ユーザーを起点に関連アカウント群をブロックします。
  */
 suspend fun AccountBlockService.blockDiscordAccount(user: User) =
