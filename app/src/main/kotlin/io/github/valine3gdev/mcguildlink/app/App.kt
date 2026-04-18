@@ -11,8 +11,10 @@ import io.github.valine3gdev.mcguildlink.app.service.AccountBlockService
 import io.github.valine3gdev.mcguildlink.app.service.AccountLinkService
 import io.github.valine3gdev.mcguildlink.app.service.WhitelistFileSyncService
 import io.github.valine3gdev.mcguildlink.app.web.configureWhitelistRouting
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.java.Java
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
@@ -51,7 +53,9 @@ class App(
      */
     suspend fun start() {
         whitelistFileSyncService.generateNow()
-        val kord = Kord(config.bot.token)
+        val kord = Kord(config.bot.token) {
+            httpClient = HttpClient(Java)
+        }
 
         webServer.start(wait = false)
 
